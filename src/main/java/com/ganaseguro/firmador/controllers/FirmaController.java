@@ -34,7 +34,7 @@ public class FirmaController {
             ResponseDTO result =  iFirmaService.firmarLoteArchivos (objFirmaLoteArchivo);
             response.put("mensaje",result.getMensaje());
             response.put("finalizado", result.isFinalizado());
-            response.put("pdf(s)_firmado(s)",result.getElementoGenerico());
+            response.put("pdfs_firmados",result.getElementoGenerico());
 
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }

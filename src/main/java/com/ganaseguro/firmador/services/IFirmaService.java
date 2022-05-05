@@ -1,10 +1,13 @@
 package com.ganaseguro.firmador.services;
 
-import com.ganaseguro.firmador.dto.RequestFirmarDTO;
+import com.ganaseguro.firmador.dto.RequestFirmarLoteArchivosDTO;
+import com.ganaseguro.firmador.dto.RequestFirmarLoteUsuarioDTO;
 import com.ganaseguro.firmador.dto.ResponseDTO;
 
+import java.util.List;
+
 public interface IFirmaService {
-    public ResponseDTO firmarDocumentoMasivo(String pdfAFirmar, String pUsuario, String pPin);
-    public ResponseDTO firmarDocumento(RequestFirmarDTO datosFirmar, String pUserName);
+    public ResponseDTO firmarLoteUsuarios(RequestFirmarLoteUsuarioDTO objLoteUsuarios);
+    public ResponseDTO firmarLoteArchivos(RequestFirmarLoteArchivosDTO objLoteArchivo);
     public ResponseDTO verificarFirmasPdf(String pdfBase64);
 }

@@ -2,10 +2,11 @@ package com.ganaseguro.firmador.dto;
 
 import java.util.List;
 
-public class RequestFirmarMasivoDTO {
+public class RequestFirmarLoteUsuarioDTO {
 
     private String pdfBase64;
     private List<UsuariosFirmantesDTO> lstUsuarioFirmantes;
+
 
     public String getPdfBase64() {
         return pdfBase64;

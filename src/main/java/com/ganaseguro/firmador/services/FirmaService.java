@@ -1,9 +1,6 @@
 package com.ganaseguro.firmador.services;
 
-import com.ganaseguro.firmador.dto.CertDate;
-import com.ganaseguro.firmador.dto.ContentsChecker;
-import com.ganaseguro.firmador.dto.RequestFirmarDTO;
-import com.ganaseguro.firmador.dto.ResponseDTO;
+import com.ganaseguro.firmador.dto.*;
 import com.ganaseguro.firmador.token.ExternalSignatureLocal;
 import com.ganaseguro.firmador.token.Slot;
 import com.ganaseguro.firmador.token.Token;
@@ -41,43 +38,53 @@ public class FirmaService implements IFirmaService {
     private String dirdocFirmado ;
 
     @Override
-    public ResponseDTO firmarDocumentoMasivo(String pdfBase64AFirmar, String pUserName, String pPin) {
-        String pathSofToken= dirSoftoken +"/"+pUserName+ "/softoken.p12";
-        Token token = new TokenPKCS12(new Slot(pathSofToken));
+    public ResponseDTO firmarLoteUsuarios(RequestFirmarLoteUsuarioDTO objLoteUsuarios) {
         ResponseDTO response = new ResponseDTO();
         try {
-            this.saveBase64(pdfBase64AFirmar);
-            token.iniciar(pPin);
-            List<String> labels = token.listarIdentificadorClaves();
-            this.firmar(new File(dirdocFirmado+"/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
-            token.salir();
-            response.setMensaje("Se ha relizado la firma correctamente");
+        for (UsuariosFirmantesDTO usuarioFirmante: objLoteUsuarios.getLstUsuarioFirmantes() ) {
+
+                String pathSofToken = dirSoftoken + "/" + usuarioFirmante.getUserName() + "/softoken.p12";
+                Token token = new TokenPKCS12(new Slot(pathSofToken));
+                this.saveBase64(objLoteUsuarios.getPdfBase64());
+                token.iniciar(usuarioFirmante.getPin());
+                List<String> labels = token.listarIdentificadorClaves();
+                this.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
+                objLoteUsuarios.setPdfBase64(FuncionesGenericos.pdfToBase64(dirdocFirmado + "/documento.firmado.pdf")); // actualizamos el pdf para el siguiente firma
+                token.salir();
+
+
+        }
+            response.setMensaje("Firmado Exitoso");
             response.setFinalizado(true);
-            response.setElementoGenerico(FuncionesGenericos.pdfToBase64(dirdocFirmado+"/documento.firmado.pdf"));
+            response.setElementoGenerico(objLoteUsuarios.getPdfBase64());
             return response;
-
-        } catch (GeneralSecurityException ex) {
-
-            response.setMensaje(ex.toString());
+        } catch (Exception ex) {
+            response.setMensaje("Mensaje Técnico: "+ex.toString());
             response.setFinalizado(false);
             return response;
         }
+
     }
 
     @Override
-    public ResponseDTO firmarDocumento(RequestFirmarDTO objDatosFirmar , String pUserName) {
-        String pathSofToken= dirSoftoken +"/"+pUserName+ "/softoken.p12";
+    public ResponseDTO firmarLoteArchivos(RequestFirmarLoteArchivosDTO objFirmaLoteArchivos) {
+        String pathSofToken= dirSoftoken +"/"+objFirmaLoteArchivos.getUserName()+ "/softoken.p12";
         Token token = new TokenPKCS12(new Slot(pathSofToken));
         ResponseDTO response = new ResponseDTO();
         try {
-            this.saveBase64(objDatosFirmar.getPdfBase64());
-            token.iniciar(objDatosFirmar.getPin());
-            List<String> labels = token.listarIdentificadorClaves();
-            this.firmar(new File(dirdocFirmado+"/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
+            List<String> lstArchivosFirmados = new ArrayList<>();
+            for (String archivo :objFirmaLoteArchivos.getPdfBase64()) {
+                this.saveBase64(archivo);
+                token.iniciar(objFirmaLoteArchivos.getPin());
+                List<String> labels = token.listarIdentificadorClaves();
+                this.firmar(new File(dirdocFirmado+"/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
+                lstArchivosFirmados.add(FuncionesGenericos.pdfToBase64(dirdocFirmado+"/documento.firmado.pdf"));
+            }
             token.salir();
+
             response.setMensaje("Se ha relizado la firma correctamente");
             response.setFinalizado(true);
-            response.setElementoGenerico(FuncionesGenericos.pdfToBase64(dirdocFirmado+"/documento.firmado.pdf"));
+            response.setElementoGenerico(lstArchivosFirmados);
             return response;
 
         } catch (GeneralSecurityException ex) {

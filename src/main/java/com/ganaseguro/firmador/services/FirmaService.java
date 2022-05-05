@@ -41,6 +41,30 @@ public class FirmaService implements IFirmaService {
     private String dirdocFirmado ;
 
     @Override
+    public ResponseDTO firmarDocumentoMasivo(String pdfBase64AFirmar, String pUserName, String pPin) {
+        String pathSofToken= dirSoftoken +"/"+pUserName+ "/softoken.p12";
+        Token token = new TokenPKCS12(new Slot(pathSofToken));
+        ResponseDTO response = new ResponseDTO();
+        try {
+            this.saveBase64(pdfBase64AFirmar);
+            token.iniciar(pPin);
+            List<String> labels = token.listarIdentificadorClaves();
+            this.firmar(new File(dirdocFirmado+"/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
+            token.salir();
+            response.setMensaje("Se ha relizado la firma correctamente");
+            response.setFinalizado(true);
+            response.setElementoGenerico(FuncionesGenericos.pdfToBase64(dirdocFirmado+"/documento.firmado.pdf"));
+            return response;
+
+        } catch (GeneralSecurityException ex) {
+
+            response.setMensaje(ex.toString());
+            response.setFinalizado(false);
+            return response;
+        }
+    }
+
+    @Override
     public ResponseDTO firmarDocumento(RequestFirmarDTO objDatosFirmar , String pUserName) {
         String pathSofToken= dirSoftoken +"/"+pUserName+ "/softoken.p12";
         Token token = new TokenPKCS12(new Slot(pathSofToken));

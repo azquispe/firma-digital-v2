@@ -4,6 +4,8 @@ public class RequestFirmarDTO {
     private String pin;
     private String pdfBase64;
 
+
+
     public String getPin() {
         return pin;
     }

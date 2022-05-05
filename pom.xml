@@ -2,6 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -11,10 +12,14 @@
     <groupId>com.gana-seguro</groupId>
     <artifactId>firmador</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging> <!-- PARA Q SE EJECUTE WAR -->
     <name>firmador</name>
     <description>firmador</description>
     <properties>
         <java.version>11</java.version>
+        <start-class>
+            com.ganaseguro.firmador.FirmadorApplication
+        </start-class>
     </properties>
     <dependencies>
         <dependency>
@@ -48,11 +53,17 @@
             <artifactId>jettison</artifactId>
             <version>1.4.1</version>
         </dependency>
-
+        <!-- evitar que spring boot ejecute en tomcat predeterminado: -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}</finalName> <!-- nombre del archivo war -->
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

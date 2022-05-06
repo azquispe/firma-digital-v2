@@ -59,7 +59,8 @@ public class FirmaService implements IFirmaService {
             response.setElementoGenerico(objLoteUsuarios.getPdfBase64());
             return response;
         } catch (Exception ex) {
-            response.setMensaje("Mensaje Técnico: "+ex.toString());
+            // guardar mensaje en un log .....
+            response.setMensaje("Algo salio mal, comuniquese con sistemas");
             response.setFinalizado(false);
             return response;
         }
@@ -88,8 +89,8 @@ public class FirmaService implements IFirmaService {
             return response;
 
         } catch (GeneralSecurityException ex) {
-
-            response.setMensaje(ex.toString());
+            // guardar mensaje en un log .....
+            response.setMensaje("Algo salio mal, comuniquese con sistemas");
             response.setFinalizado(false);
             return response;
         }

@@ -1,8 +1,5 @@
 package com.ganaseguro.firmador.controllers;
-import com.ganaseguro.firmador.dto.RequestFirmarLoteArchivosDTO;
-import com.ganaseguro.firmador.dto.RequestFirmarLoteUsuarioDTO;
-import com.ganaseguro.firmador.dto.ResponseDTO;
-import com.ganaseguro.firmador.dto.UsuariosFirmantesDTO;
+import com.ganaseguro.firmador.dto.*;
 import com.ganaseguro.firmador.services.IFirmaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,12 +48,12 @@ public class FirmaController {
     }
 
 
-    /*@PostMapping("/verirficar-firma-pdf")
-    public ResponseEntity<?> toString(@RequestBody RequestFirmarDTO objFirmaDto) {
+    @PostMapping("/verirficar-firma-pdf")
+    public ResponseEntity<?> toString(@RequestBody PdfBase64DTO archivoAVerificar) {
 
         Map<String, Object> response = new HashMap<>();
         try{
-            ResponseDTO result =  iFirmaService.verificarFirmasPdf(objFirmaDto.getPdfBase64());
+            ResponseDTO result =  iFirmaService.verificarFirmasPdf(archivoAVerificar.getArchivo());
             response.put("mensaje",result.getMensaje());
             response.put("finalizado", result.isFinalizado());
             response.put("firmas",result.getElementoGenerico());
@@ -65,5 +62,5 @@ public class FirmaController {
             response.put("finalizado", false);
         }
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-    }*/
+    }
 }

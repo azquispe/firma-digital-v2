@@ -153,7 +153,7 @@ public class FirmaService implements IFirmaService {
 
         }catch (Exception ex){
             result.setFinalizado(false);
-            result.setMensaje(ex.getMessage());
+            result.setMensaje("Algo salio mal, comuniquese con sistemas");
             return result;
         }
 

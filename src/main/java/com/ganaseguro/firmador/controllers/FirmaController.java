@@ -52,15 +52,12 @@ public class FirmaController {
     public ResponseEntity<?> toString(@RequestBody PdfBase64DTO archivoAVerificar) {
 
         Map<String, Object> response = new HashMap<>();
-        try{
-            ResponseDTO result =  iFirmaService.verificarFirmasPdf(archivoAVerificar.getArchivo());
+
+            ResponseDTO result =  iFirmaService.verificarFirmasPdf(archivoAVerificar.getPdfBase64());
             response.put("mensaje",result.getMensaje());
             response.put("finalizado", result.isFinalizado());
             response.put("firmas",result.getElementoGenerico());
-        }catch (Exception ex){
-            response.put("mensaje", ex.toString());
-            response.put("finalizado", false);
-        }
+
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 }

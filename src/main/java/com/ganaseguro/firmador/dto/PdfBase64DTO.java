@@ -1,13 +1,13 @@
 package com.ganaseguro.firmador.dto;
 
 public class PdfBase64DTO {
-    private String archivo;
+    private String pdfBase64;
 
-    public String getArchivo() {
-        return archivo;
+    public String getPdfBase64() {
+        return pdfBase64;
     }
 
-    public void setArchivo(String archivo) {
-        this.archivo = archivo;
+    public void setPdfBase64(String pdfBase64) {
+        this.pdfBase64 = pdfBase64;
     }
 }

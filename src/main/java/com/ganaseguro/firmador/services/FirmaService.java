@@ -124,7 +124,7 @@ public class FirmaService implements IFirmaService {
                 firma.put("firmadoDuranteVigencia", cert.isActive());
                 firma.put("firmadoAntesRevocacion", cert.isOCSP());
                 firma.put("versionado", cert.isValidAlerted());
-                firma.put("timeStamp", cert.getTimeStamp() != null);
+                //firma.put("timeStamp", cert.getTimeStamp() != null);
                 firma.put("fechaFirma", dateFormat.format(cert.getSignDate()));
                 Map<String, Object> certificado = new HashMap<>();
                 if (cert.getDatos().getComplementoSubject() != null && !cert.getDatos().getComplementoSubject().equals("")) {

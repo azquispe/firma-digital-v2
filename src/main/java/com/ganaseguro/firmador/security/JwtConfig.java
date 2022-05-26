@@ -13,13 +13,5 @@ public class JwtConfig {
             "IQIDAQAB\n" +
             "-----END PUBLIC KEY-----";
 
-    /*public static final String RSA_PUBLIC="-----BEGIN PUBLIC KEY-----\r\n" +
-            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvJUM7Bvz5hLsQ2hwrmCp\r\n" +
-            "tqB9CjAwoEN8bywZhCSZtigOU/yi0iE9o3Tnxr6M6WVK8XZcP5HdJq58Gyh327xJ\r\n" +
-            "+1Zc49o3KczH9iSu3gTSTNm0zbaRLrkK7a59TLreyNJhS5kDp744p9y9nnwgxfcX\r\n" +
-            "r5Y75omQsI3Q8D6igsp1p94sMwN5o8lx2SNvdZHd/urBsNPI1GzmlEqtLWMHJ+xI\r\n" +
-            "46Ol6Ri7jrs440tSxZ3KHbhgm9LpY4ncxysU7q2M6PJVFZO8QpmJyQ+XJwgmOPzx\r\n" +
-            "Ql0HbL0wHMDyeChzX5rcAQ8i+PLXgc6FrTB5grSaJyRwZmTPVUpEy+D7sLUbdl/r\r\n" +
-            "0wIDAQAB\r\n" +
-            "-----END PUBLIC KEY-----";*/
+
 }

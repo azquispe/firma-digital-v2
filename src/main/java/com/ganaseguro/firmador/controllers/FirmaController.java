@@ -26,7 +26,7 @@ public class FirmaController {
     @PostMapping("/firmar-lote-archivos")
     public ResponseEntity<?> firmaLoteArchivo(@RequestBody RequestFirmarLoteArchivosDTO objFirmaLoteArchivo) {
 
-        Map<String, Object> response = new HashMap<>();
+            Map<String, Object> response = new HashMap<>();
 
             ResponseDTO result =  iFirmaService.firmarLoteArchivos (objFirmaLoteArchivo);
             response.put("mensaje",result.getMensaje());

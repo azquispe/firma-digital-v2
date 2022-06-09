@@ -33,9 +33,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers("/").permitAll()
-                .antMatchers("/api/**").permitAll(); // esto debe ser .autenticated para empezar a validar
+        http.authorizeRequests().antMatchers("/").permitAll().antMatchers("/api/**").permitAll(); // esto debe ser .Autenticated para empezar a validar
     }
 
 

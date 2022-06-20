@@ -1,16 +1,16 @@
 package com.ganaseguro.firmador.dto;
 
 public class ResponseDTO<T> {
-    private boolean finalizado;
+    private String codigo;
     private String mensaje;
     private T elementoGenerico;
 
-    public boolean isFinalizado() {
-        return finalizado;
+    public String getCodigo() {
+        return codigo;
     }
 
-    public void setFinalizado(boolean finalizado) {
-        this.finalizado = finalizado;
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public String getMensaje() {

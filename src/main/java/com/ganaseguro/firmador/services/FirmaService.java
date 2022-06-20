@@ -39,29 +39,65 @@ public class FirmaService implements IFirmaService {
 
     @Override
     public ResponseDTO firmarLoteUsuarios(RequestFirmarLoteUsuarioDTO objLoteUsuarios) {
+
+
+
         ResponseDTO response = new ResponseDTO();
         try {
-        for (UsuariosFirmantesDTO usuarioFirmante: objLoteUsuarios.getLstUsuarioFirmantes() ) {
 
+            if(objLoteUsuarios.getLstUsuarioFirmantes().size()==0){
+                response.setMensaje("Debe existir al menos un usuario que firme");
+                response.setCodigo("ERROR-2001");
+                return response;
+            }
+            if(objLoteUsuarios.getPdfBase64()==null || objLoteUsuarios.getPdfBase64().trim()==""){
+                response.setMensaje("Debe enviar un documento pdf");
+                response.setCodigo("ERROR-2001");
+                return response;
+            }
+
+
+
+        for (UsuariosFirmantesDTO usuarioFirmante: objLoteUsuarios.getLstUsuarioFirmantes() ) {
                 String pathSofToken = dirSoftoken + "/" + usuarioFirmante.getUserName() + "/softoken.p12";
+
+                File file = new File(pathSofToken);
+                if(!file.exists()){
+                    response.setMensaje("Existe usuario(s) que no tienen Certificado para poder firmar");
+                    response.setCodigo("ERROR-2001");
+                    return response;
+                }
+
                 Token token = new TokenPKCS12(new Slot(pathSofToken));
-                this.saveBase64(objLoteUsuarios.getPdfBase64());
-                token.iniciar(usuarioFirmante.getPin());
+                try{
+                    this.saveBase64(objLoteUsuarios.getPdfBase64());
+                }catch (Exception ex){
+                    response.setMensaje("Existe error en la recepción y construcción del documento");
+                    response.setCodigo("ERROR-2001");
+                    return response;
+                }
+
+                try{
+                    token.iniciar(usuarioFirmante.getPin());
+                }catch (Exception ex){
+                    response.setMensaje("Pin o los Pines no son los correctos para poder firmar");
+                    response.setCodigo("ERROR-2001");
+                    return response;
+                }
+
                 List<String> labels = token.listarIdentificadorClaves();
                 this.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
                 objLoteUsuarios.setPdfBase64(FuncionesGenericos.pdfToBase64(dirdocFirmado + "/documento.firmado.pdf")); // actualizamos el pdf para el siguiente firma
                 token.salir();
-
-
         }
             response.setMensaje("Firmado Exitoso");
-            response.setFinalizado(true);
+            response.setCodigo("SUCCESS-2001");
             response.setElementoGenerico(objLoteUsuarios.getPdfBase64());
             return response;
         } catch (Exception ex) {
             // guardar mensaje en un log .....
             response.setMensaje("Algo salio mal, comuniquese con sistemas");
-            response.setFinalizado(false);
+            response.setCodigo("ERROR-2001");
             return response;
         }
 
@@ -75,7 +111,14 @@ public class FirmaService implements IFirmaService {
         try {
             List<String> lstArchivosFirmados = new ArrayList<>();
             for (String archivo :objFirmaLoteArchivos.getPdfBase64()) {
-                this.saveBase64(archivo);
+                try{
+                    this.saveBase64(archivo);
+                }catch (Exception ex){
+                    response.setMensaje("Existe error en la recepción y construcción del documento");
+                    response.setCodigo("ERROR-2000");
+                    return response;
+                }
+
                 token.iniciar(objFirmaLoteArchivos.getPin());
                 List<String> labels = token.listarIdentificadorClaves();
                 this.firmar(new File(dirdocFirmado+"/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
@@ -84,14 +127,14 @@ public class FirmaService implements IFirmaService {
             token.salir();
 
             response.setMensaje("Se ha relizado la firma correctamente");
-            response.setFinalizado(true);
+            response.setCodigo("SUCCESS-1000");
             response.setElementoGenerico(lstArchivosFirmados);
             return response;
 
         } catch (GeneralSecurityException ex) {
             // guardar mensaje en un log .....
             response.setMensaje("Algo salio mal, comuniquese con sistemas");
-            response.setFinalizado(false);
+            response.setCodigo("ERROR-2000");
             return response;
         }
     }
@@ -102,7 +145,7 @@ public class FirmaService implements IFirmaService {
         try{
             byte[] decodeFile = Base64.getDecoder().decode(pdfBase64);
             if(decodeFile==null){
-                result.setFinalizado(false);
+                result.setCodigo("ERROR-2000");
                 result.setMensaje("Datos requeridos pdf.");
                 return result;
             }
@@ -146,13 +189,13 @@ public class FirmaService implements IFirmaService {
                 firma.put("certificado", certificado);
                 firmas.add(firma);
             }
-            result.setFinalizado(true);
+            result.setCodigo("SUCCESS-1000");
             result.setMensaje("Se validó las firmas correctamente!");
             result.setElementoGenerico(firmas);
             return result;
 
         }catch (Exception ex){
-            result.setFinalizado(false);
+            result.setCodigo("ERROR-2000");
             result.setMensaje("Algo salio mal, comuniquese con sistemas");
             return result;
         }
@@ -250,13 +293,10 @@ public class FirmaService implements IFirmaService {
             System.err.println("Error inesperado al firmar el documetno.");
         }
     }
-    public void saveBase64(String pBase64){
+    public void saveBase64(String pBase64) throws Exception{
         File file = new File(dirdocFirmado+"/documento.pdf");
-        try ( FileOutputStream fos = new FileOutputStream(file); ) {
-            byte[] decoder = Base64.getDecoder().decode(pBase64);
-            fos.write(decoder);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        FileOutputStream fos = new FileOutputStream(file);
+        byte[] decoder = Base64.getDecoder().decode(pBase64);
+        fos.write(decoder);
     }
 }

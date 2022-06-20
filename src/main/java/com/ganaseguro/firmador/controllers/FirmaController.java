@@ -30,7 +30,7 @@ public class FirmaController {
 
             ResponseDTO result =  iFirmaService.firmarLoteArchivos (objFirmaLoteArchivo);
             response.put("mensaje",result.getMensaje());
-            response.put("finalizado", result.isFinalizado());
+            response.put("codigo", result.getCodigo());
             response.put("pdfs_firmados",result.getElementoGenerico());
 
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
@@ -42,7 +42,7 @@ public class FirmaController {
         Map<String, Object> response = new HashMap<>();
         ResponseDTO result =  iFirmaService.firmarLoteUsuarios (objUsuarioFirmantesMasivoDto);
         response.put("mensaje",result.getMensaje());
-        response.put("finalizado", result.isFinalizado());
+        response.put("codigo", result.getCodigo());
         response.put("pdf_firmado",result.getElementoGenerico());
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
@@ -55,7 +55,7 @@ public class FirmaController {
 
             ResponseDTO result =  iFirmaService.verificarFirmasPdf(archivoAVerificar.getPdfBase64());
             response.put("mensaje",result.getMensaje());
-            response.put("finalizado", result.isFinalizado());
+            response.put("codigo", result.getCodigo());
             response.put("firmas",result.getElementoGenerico());
 
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);

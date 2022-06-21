@@ -28,23 +28,14 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
-
-
-
-
     @Override
     public void configure(HttpSecurity http) throws Exception {
-
-            http.authorizeRequests().antMatchers("/").permitAll().antMatchers("/api/**").authenticated();
-
+        http.authorizeRequests().antMatchers("/").permitAll().antMatchers("/api/**").authenticated();
     }
-
-
     @Bean
     public JwtTokenStore tokenStore() {
         return new JwtTokenStore(accessTokenConverter());
     }
-
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
@@ -52,6 +43,4 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         jwtAccessTokenConverter.setVerifierKey(JwtConfig.RSA_PUBLIC); // llave publica para Validar firma, esta necesitamos
         return jwtAccessTokenConverter;
     }
-
-
 }

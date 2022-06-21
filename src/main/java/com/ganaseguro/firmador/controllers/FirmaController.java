@@ -23,41 +23,37 @@ public class FirmaController {
         return "hola Mundo";
     }
 
-    @PostMapping("/firmar-lote-archivos")
+    @PostMapping("/v1/firmar-lote-archivos")
     public ResponseEntity<?> firmaLoteArchivo(@RequestBody RequestFirmarLoteArchivosDTO objFirmaLoteArchivo) {
 
             Map<String, Object> response = new HashMap<>();
-
             ResponseDTO result =  iFirmaService.firmarLoteArchivos (objFirmaLoteArchivo);
+            response.put("codigoMensaje", result.getCodigo());
             response.put("mensaje",result.getMensaje());
-            response.put("codigo", result.getCodigo());
             response.put("pdfs_firmados",result.getElementoGenerico());
-
-        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 
-    @PostMapping("/firmar-lote-usuarios")
+    @PostMapping("/v1/firmar-lote-usuarios")
     public ResponseEntity<?> firmaLoteUsuarios(@RequestBody RequestFirmarLoteUsuarioDTO objUsuarioFirmantesMasivoDto) {
 
         Map<String, Object> response = new HashMap<>();
         ResponseDTO result =  iFirmaService.firmarLoteUsuarios (objUsuarioFirmantesMasivoDto);
+        response.put("codigoMensaje", result.getCodigo());
         response.put("mensaje",result.getMensaje());
-        response.put("codigo", result.getCodigo());
         response.put("pdf_firmado",result.getElementoGenerico());
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 
 
-    @PostMapping("/verirficar-firma-pdf")
+    @PostMapping("/v1/verirficar-firma-pdf")
     public ResponseEntity<?> toString(@RequestBody PdfBase64DTO archivoAVerificar) {
 
-        Map<String, Object> response = new HashMap<>();
-
+            Map<String, Object> response = new HashMap<>();
             ResponseDTO result =  iFirmaService.verificarFirmasPdf(archivoAVerificar.getPdfBase64());
+            response.put("codigoMensaje", result.getCodigo());
             response.put("mensaje",result.getMensaje());
-            response.put("codigo", result.getCodigo());
             response.put("firmas",result.getElementoGenerico());
-
-        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 }

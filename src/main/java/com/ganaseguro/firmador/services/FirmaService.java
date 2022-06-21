@@ -6,6 +6,7 @@ import com.ganaseguro.firmador.token.Slot;
 import com.ganaseguro.firmador.token.Token;
 import com.ganaseguro.firmador.token.TokenPKCS12;
 import com.ganaseguro.firmador.utils.FuncionesGenericos;
+import com.ganaseguro.firmador.utils.constantes.ConstDiccionarioMensajeFirma;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.*;
 import com.itextpdf.signatures.*;
@@ -32,56 +33,57 @@ import static com.ganaseguro.firmador.dto.Validar.verificarPKI;
 public class FirmaService implements IFirmaService {
 
     @Value("${dir.softoken}")
-    private String dirSoftoken ;
+    private String dirSoftoken;
 
     @Value("${dir.docFirmado}")
-    private String dirdocFirmado ;
+    private String dirdocFirmado;
 
     @Override
     public ResponseDTO firmarLoteUsuarios(RequestFirmarLoteUsuarioDTO objLoteUsuarios) {
-
-
-
         ResponseDTO response = new ResponseDTO();
         try {
-
-            if(objLoteUsuarios.getLstUsuarioFirmantes().size()==0){
-                response.setMensaje("Debe existir al menos un usuario que firme");
-                response.setCodigo("ERROR-2001");
-                return response;
-            }
-            if(objLoteUsuarios.getPdfBase64()==null || objLoteUsuarios.getPdfBase64().trim()==""){
-                response.setMensaje("Debe enviar un documento pdf");
-                response.setCodigo("ERROR-2001");
+            // VALIDAMOS SI EL REQUEST TRAE NOMBRE DE USUARIO(S)
+            if (objLoteUsuarios.getLstUsuarioFirmantes().size() == 0) {
+                response.setMensaje(ConstDiccionarioMensajeFirma.COD2001_MENSAJE);
+                response.setCodigo(ConstDiccionarioMensajeFirma.COD2001);
                 return response;
             }
 
+            // VALIDAMOS QUE TENGA BASE 64 (PDF A FIRMAR)
+            if (objLoteUsuarios.getPdfBase64() == null || objLoteUsuarios.getPdfBase64().trim() == "") {
+                response.setMensaje(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
+                response.setCodigo(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
+                return response;
+            }
 
-
-        for (UsuariosFirmantesDTO usuarioFirmante: objLoteUsuarios.getLstUsuarioFirmantes() ) {
+            for (UsuariosFirmantesDTO usuarioFirmante : objLoteUsuarios.getLstUsuarioFirmantes()) {
                 String pathSofToken = dirSoftoken + "/" + usuarioFirmante.getUserName() + "/softoken.p12";
-
                 File file = new File(pathSofToken);
-                if(!file.exists()){
-                    response.setMensaje("Existe usuario(s) que no tienen Certificado para poder firmar");
-                    response.setCodigo("ERROR-2001");
+
+                // VALIDAMOS QUE EXISTA CARPETA DEL USUARIO
+                if (!file.exists()) {
+                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2003_MENSAJE);
+                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2003);
                     return response;
                 }
 
                 Token token = new TokenPKCS12(new Slot(pathSofToken));
-                try{
+
+                //VALIDAMOS QUE EL DOCUMENTO SE CONSTRUYA CORRECTAMENTE
+                try {
                     this.saveBase64(objLoteUsuarios.getPdfBase64());
-                }catch (Exception ex){
-                    response.setMensaje("Existe error en la recepción y construcción del documento");
-                    response.setCodigo("ERROR-2001");
+                } catch (Exception ex) {
+                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2005_MENSAJE);
+                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2005);
                     return response;
                 }
 
-                try{
+                //VALIDAMOS QUE EL PIN SEA CORRECTO
+                try {
                     token.iniciar(usuarioFirmante.getPin());
-                }catch (Exception ex){
-                    response.setMensaje("Pin o los Pines no son los correctos para poder firmar");
-                    response.setCodigo("ERROR-2001");
+                } catch (Exception ex) {
+                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2004_MENSAJE);
+                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2004);
                     return response;
                 }
 
@@ -89,15 +91,15 @@ public class FirmaService implements IFirmaService {
                 this.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
                 objLoteUsuarios.setPdfBase64(FuncionesGenericos.pdfToBase64(dirdocFirmado + "/documento.firmado.pdf")); // actualizamos el pdf para el siguiente firma
                 token.salir();
-        }
-            response.setMensaje("Firmado Exitoso");
-            response.setCodigo("SUCCESS-2001");
+            }
+            response.setMensaje(ConstDiccionarioMensajeFirma.COD1000_MENSAJE);
+            response.setCodigo(ConstDiccionarioMensajeFirma.COD1000);
             response.setElementoGenerico(objLoteUsuarios.getPdfBase64());
             return response;
         } catch (Exception ex) {
             // guardar mensaje en un log .....
-            response.setMensaje("Algo salio mal, comuniquese con sistemas");
-            response.setCodigo("ERROR-2001");
+            response.setMensaje(ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
+            response.setCodigo(ConstDiccionarioMensajeFirma.COD2000);
             return response;
         }
 
@@ -105,62 +107,103 @@ public class FirmaService implements IFirmaService {
 
     @Override
     public ResponseDTO firmarLoteArchivos(RequestFirmarLoteArchivosDTO objFirmaLoteArchivos) {
-        String pathSofToken= dirSoftoken +"/"+objFirmaLoteArchivos.getUserName()+ "/softoken.p12";
-        Token token = new TokenPKCS12(new Slot(pathSofToken));
+
         ResponseDTO response = new ResponseDTO();
         try {
+
+            String pathSofToken = dirSoftoken + "/" + objFirmaLoteArchivos.getUserName() + "/softoken.p12";
+            File file = new File(pathSofToken);
+            // VALIDAMOS SI EXISTE CARPETA DEL USUARIO
+            if (!file.exists()) {
+                response.setMensaje(ConstDiccionarioMensajeFirma.COD2003_MENSAJE);
+                response.setCodigo(ConstDiccionarioMensajeFirma.COD2003);
+                return response;
+            }
+            // VALIDAMOS SI EL REQUEST TRAE NOMBRE DE USUARIO
+            if (objFirmaLoteArchivos.getUserName() == null || objFirmaLoteArchivos.getUserName().trim() == "") {
+                response.setMensaje(ConstDiccionarioMensajeFirma.COD2001_MENSAJE);
+                response.setCodigo(ConstDiccionarioMensajeFirma.COD2001);
+                return response;
+            }
+            //VALIDAMOS SI EL REQUEST TRAE BASE 64 (DOCUMENTOS)
+            if (objFirmaLoteArchivos.getPdfBase64().size() == 0) {
+                response.setMensaje(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
+                response.setCodigo(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
+                return response;
+            }
+
             List<String> lstArchivosFirmados = new ArrayList<>();
-            for (String archivo :objFirmaLoteArchivos.getPdfBase64()) {
-                try{
+            Token token = new TokenPKCS12(new Slot(pathSofToken));
+            for (String archivo : objFirmaLoteArchivos.getPdfBase64()) {
+
+                //VALIDAMOS QUE EL DOCUMENTO SE CONSTRUYA CORRECTAMENTE
+                try {
                     this.saveBase64(archivo);
-                }catch (Exception ex){
-                    response.setMensaje("Existe error en la recepción y construcción del documento");
-                    response.setCodigo("ERROR-2000");
+                } catch (Exception ex) {
+                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2005_MENSAJE);
+                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2005);
                     return response;
                 }
 
-                token.iniciar(objFirmaLoteArchivos.getPin());
+                //VALIDAMOS QUE EL PIN SEA CORRECTO
+                try {
+                    token.iniciar(objFirmaLoteArchivos.getPin());
+                } catch (Exception ex) {
+                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2004_MENSAJE);
+                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2004);
+                    return response;
+                }
+
                 List<String> labels = token.listarIdentificadorClaves();
-                this.firmar(new File(dirdocFirmado+"/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
-                lstArchivosFirmados.add(FuncionesGenericos.pdfToBase64(dirdocFirmado+"/documento.firmado.pdf"));
+                this.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
+                lstArchivosFirmados.add(FuncionesGenericos.pdfToBase64(dirdocFirmado + "/documento.firmado.pdf"));
             }
             token.salir();
 
-            response.setMensaje("Se ha relizado la firma correctamente");
-            response.setCodigo("SUCCESS-1000");
+
+            response.setMensaje(ConstDiccionarioMensajeFirma.COD1000_MENSAJE);
+            response.setCodigo(ConstDiccionarioMensajeFirma.COD1000);
             response.setElementoGenerico(lstArchivosFirmados);
             return response;
 
         } catch (GeneralSecurityException ex) {
-            // guardar mensaje en un log .....
-            response.setMensaje("Algo salio mal, comuniquese con sistemas");
-            response.setCodigo("ERROR-2000");
+            // RETORNA MESAJE DESCONOCIDO
+            response.setMensaje(ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
+            response.setCodigo(ConstDiccionarioMensajeFirma.COD2000);
             return response;
+
+            //Es recomendable almacenar en un log estos errores...
         }
     }
 
     @Override
     public ResponseDTO verificarFirmasPdf(String pdfBase64) {
         ResponseDTO result = new ResponseDTO();
-        try{
-            byte[] decodeFile = Base64.getDecoder().decode(pdfBase64);
-            if(decodeFile==null){
-                result.setCodigo("ERROR-2000");
-                result.setMensaje("Datos requeridos pdf.");
+        try {
+
+            // VALIDAMOS QUE EXISTA DOCUMENTOS PDF
+            if (pdfBase64 == null || pdfBase64.trim()=="") {
+                result.setCodigo(ConstDiccionarioMensajeFirma.COD2006);
+                result.setMensaje(ConstDiccionarioMensajeFirma.COD2006_MENSAJE);
                 return result;
             }
+            byte[] decodeFile = Base64.getDecoder().decode(pdfBase64);
+            // VALIDAMOS QUE EXISTA DOCUMENTOS PDF
+            if (decodeFile == null) {
+                result.setCodigo(ConstDiccionarioMensajeFirma.COD2006);
+                result.setMensaje(ConstDiccionarioMensajeFirma.COD2006_MENSAJE);
+                return result;
+            }
+
             if (Security.getProvider("BC") == null) {
                 Security.addProvider(new BouncyCastleProvider());
             }
             List<CertDate> certificados = this.listarCertificados(new ByteArrayInputStream(decodeFile));
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-
             List<Map<String, Object>> firmas = new ArrayList<>();
 
-
-
-            for (CertDate cert: certificados) {
+            for (CertDate cert : certificados) {
                 Map<String, Object> firma = new HashMap<>();
                 firma.put("noModificado", cert.isValid());
                 firma.put("cadenaConfianza", cert.isPKI());
@@ -189,14 +232,14 @@ public class FirmaService implements IFirmaService {
                 firma.put("certificado", certificado);
                 firmas.add(firma);
             }
-            result.setCodigo("SUCCESS-1000");
-            result.setMensaje("Se validó las firmas correctamente!");
+            result.setCodigo(ConstDiccionarioMensajeFirma.COD1000);
+            result.setMensaje(ConstDiccionarioMensajeFirma.COD1000_MENSAJE);
             result.setElementoGenerico(firmas);
             return result;
 
-        }catch (Exception ex){
-            result.setCodigo("ERROR-2000");
-            result.setMensaje("Algo salio mal, comuniquese con sistemas");
+        } catch (Exception ex) {
+            result.setCodigo(ConstDiccionarioMensajeFirma.COD2000);
+            result.setMensaje(ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
             return result;
         }
 
@@ -237,13 +280,14 @@ public class FirmaService implements IFirmaService {
         }
         return certs;
     }
+
     private boolean bloqueaDocumento(PdfArray referenceArray) {
         if (referenceArray == null || referenceArray.size() == 0) {
             return false;
         }
         for (PdfObject referenceObject : referenceArray) {
             if (referenceObject.isIndirectReference())
-                referenceObject = ((PdfIndirectReference)referenceObject).getRefersTo(true);
+                referenceObject = ((PdfIndirectReference) referenceObject).getRefersTo(true);
             if (referenceObject.isIndirectReference()) {
                 continue;
             }
@@ -275,7 +319,8 @@ public class FirmaService implements IFirmaService {
         }
         return false;
     }
-    public  void firmar(File file, PrivateKey pk, Certificate[] chain, String provider) {
+
+    public void firmar(File file, PrivateKey pk, Certificate[] chain, String provider) {
         try {
             PdfReader reader = new PdfReader(file);
             StampingProperties stamp = new StampingProperties();
@@ -293,8 +338,9 @@ public class FirmaService implements IFirmaService {
             System.err.println("Error inesperado al firmar el documetno.");
         }
     }
-    public void saveBase64(String pBase64) throws Exception{
-        File file = new File(dirdocFirmado+"/documento.pdf");
+
+    public void saveBase64(String pBase64) throws Exception {
+        File file = new File(dirdocFirmado + "/documento.pdf");
         FileOutputStream fos = new FileOutputStream(file);
         byte[] decoder = Base64.getDecoder().decode(pBase64);
         fos.write(decoder);

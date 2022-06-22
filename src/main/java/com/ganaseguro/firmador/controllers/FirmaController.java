@@ -46,7 +46,7 @@ public class FirmaController {
     }
 
 
-    @PostMapping("/v1/verirficar-firma-pdf")
+    @PostMapping("/v1/verificar-firma-pdf")
     public ResponseEntity<?> toString(@RequestBody PdfBase64DTO archivoAVerificar) {
 
             Map<String, Object> response = new HashMap<>();

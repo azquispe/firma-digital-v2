@@ -52,7 +52,7 @@ public class FirmaService implements IFirmaService {
             // VALIDAMOS QUE TENGA BASE 64 (PDF A FIRMAR)
             if (objLoteUsuarios.getPdfBase64() == null || objLoteUsuarios.getPdfBase64().trim() == "") {
                 response.setMensaje(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
+                response.setCodigo(ConstDiccionarioMensajeFirma.COD2002);
                 return response;
             }
 
@@ -210,7 +210,7 @@ public class FirmaService implements IFirmaService {
                 firma.put("firmadoDuranteVigencia", cert.isActive());
                 firma.put("firmadoAntesRevocacion", cert.isOCSP());
                 firma.put("versionado", cert.isValidAlerted());
-                //firma.put("timeStamp", cert.getTimeStamp() != null);
+                //firma.put("timeStamp", cert.getTimeStamp() != null);  // ALVARO DE ADSIB INDICA QUE ESTE CAMBO AUN NO ESTA EN PRODUCIÓN
                 firma.put("fechaFirma", dateFormat.format(cert.getSignDate()));
                 Map<String, Object> certificado = new HashMap<>();
                 if (cert.getDatos().getComplementoSubject() != null && !cert.getDatos().getComplementoSubject().equals("")) {

@@ -31,4 +31,7 @@ public class ConstDiccionarioMensajeFirma {
     public static final String COD2006_MENSAJE = "No existe  Documento(s) para verificar";
 
 
+
+
+
 }

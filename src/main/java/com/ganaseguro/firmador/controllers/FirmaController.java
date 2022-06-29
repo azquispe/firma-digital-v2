@@ -1,4 +1,5 @@
 package com.ganaseguro.firmador.controllers;
+
 import com.ganaseguro.firmador.dto.*;
 import com.ganaseguro.firmador.services.IFirmaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,36 +25,36 @@ public class FirmaController {
     }
 
     @PostMapping("/v1/firmar-lote-archivos")
-    public ResponseEntity<?> firmaLoteArchivo(@RequestBody RequestFirmarLoteArchivosDTO objFirmaLoteArchivo) {
+    public ResponseEntity<?> firmaLoteArchivo(@RequestBody RequestFirmarLoteArchivosDto objFirmaLoteArchivo) {
 
-            Map<String, Object> response = new HashMap<>();
-            ResponseDTO result =  iFirmaService.firmarLoteArchivos (objFirmaLoteArchivo);
-            response.put("codigoMensaje", result.getCodigo());
-            response.put("mensaje",result.getMensaje());
-            response.put("pdfs_firmados",result.getElementoGenerico());
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+        Map<String, Object> response = new HashMap<>();
+        ResponseDto result = iFirmaService.firmarLoteArchivos(objFirmaLoteArchivo);
+        response.put("codigoMensaje", result.getCodigo());
+        response.put("mensaje", result.getMensaje());
+        response.put("pdfs_firmados", result.getElementoGenerico());
+        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 
     @PostMapping("/v1/firmar-lote-usuarios")
-    public ResponseEntity<?> firmaLoteUsuarios(@RequestBody RequestFirmarLoteUsuarioDTO objUsuarioFirmantesMasivoDto) {
+    public ResponseEntity<?> firmaLoteUsuarios(@RequestBody RequestFirmarLoteUsuarioDto objUsuarioFirmantesMasivoDto) {
 
         Map<String, Object> response = new HashMap<>();
-        ResponseDTO result =  iFirmaService.firmarLoteUsuarios (objUsuarioFirmantesMasivoDto);
+        ResponseDto result = iFirmaService.firmarLoteUsuarios(objUsuarioFirmantesMasivoDto);
         response.put("codigoMensaje", result.getCodigo());
-        response.put("mensaje",result.getMensaje());
-        response.put("pdf_firmado",result.getElementoGenerico());
+        response.put("mensaje", result.getMensaje());
+        response.put("pdf_firmado", result.getElementoGenerico());
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 
 
     @PostMapping("/v1/verificar-firma-pdf")
-    public ResponseEntity<?> toString(@RequestBody PdfBase64DTO archivoAVerificar) {
+    public ResponseEntity<?> toString(@RequestBody PdfBase64Dto archivoAVerificar) {
 
-            Map<String, Object> response = new HashMap<>();
-            ResponseDTO result =  iFirmaService.verificarFirmasPdf(archivoAVerificar.getPdfBase64());
-            response.put("codigoMensaje", result.getCodigo());
-            response.put("mensaje",result.getMensaje());
-            response.put("firmas",result.getElementoGenerico());
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+        Map<String, Object> response = new HashMap<>();
+        ResponseDto result = iFirmaService.verificarFirmasPdf(archivoAVerificar.getPdfBase64());
+        response.put("codigoMensaje", result.getCodigo());
+        response.put("mensaje", result.getMensaje());
+        response.put("firmas", result.getElementoGenerico());
+        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 }

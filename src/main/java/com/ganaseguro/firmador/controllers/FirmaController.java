@@ -57,4 +57,15 @@ public class FirmaController {
         response.put("firmas", result.getElementoGenerico());
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/v1/obtiene-informacion-certificado")
+    public ResponseEntity<?> toString(@RequestBody UsuariosFirmantesDto usuariosFirmantesDto) {
+
+        Map<String, Object> response = new HashMap<>();
+        ResponseDto result = iFirmaService.obtieneInformacionCertificado(usuariosFirmantesDto);
+        response.put("codigoMensaje", result.getCodigo());
+        response.put("mensaje", result.getMensaje());
+        response.put("data_token", result.getElementoGenerico());
+        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+    }
 }

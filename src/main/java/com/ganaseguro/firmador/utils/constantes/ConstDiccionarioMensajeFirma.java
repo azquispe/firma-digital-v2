@@ -17,6 +17,13 @@ public class ConstDiccionarioMensajeFirma {
     public static final String COD2005_MENSAJE = "No se pudo construir el documento .pdf (Base 64)";
     public static final String COD2006 = "COD2006";
     public static final String COD2006_MENSAJE = "No existe  Documento(s) para verificar";
+    public static final String COD2007 = "COD2007";
+    public static final String COD2007_MENSAJE = "No se pudo firmar el documento 'pdf'";
+
+    public static final String COD2008 = "COD2008";
+    public static final String COD2008_MENSAJE = "No se pudo obtener fecha Validez del Softoken";
+    public static final String COD2009 = "COD2009";
+    public static final String COD2009_MENSAJE = "Fecha del token se encuentra Vencido";
 
 
 

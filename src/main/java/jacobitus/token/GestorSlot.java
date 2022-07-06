@@ -1,29 +1,31 @@
 package jacobitus.token;
 
-//import bo.firmadigital.pkcs11.PKCS11;
 
+
+
+//import bo.firmadigital.jacobitus4.util.Config;
+//import bo.firmadigital.pkcs11.PKCS11;
 import jacobitus.pkcs11.PKCS11;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 
 import java.io.*;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import jacobitus.util.Config;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 /**
  * Clase que gestiona los Token conectados.
  * Esta clase implementa las siguientes funcionalidades.
  * 1.- Identificar el driver del Token.
  * 2.- Listar slots (Espacio de conexi&oacute;n de un token que es representado
  * por un n&uacute;mero entero Ejemplo: 0, 2, 6).
- * 
+ *
  * @author ADSIB
  */
 public class GestorSlot {
@@ -48,7 +50,7 @@ public class GestorSlot {
 
     /**
      * Esta funci&oacute;n establece la ruta de la libreria a partir del identificador
-     * 
+     *
      * @param id Identificador del controlador del token
      * @return Path de la libreria
      */
@@ -124,13 +126,20 @@ public class GestorSlot {
     public synchronized Slot[] listarSlots(boolean software) {
         slots.clear();
         try {
-            List<JSONObject> tokens = SmartCard.cards();
-
-            if (tokens.size() > 1) {
-                throw new RuntimeException("Tokens de diferentes marcas conectados.");
-            }
-            if (!tokens.isEmpty()) {
-                libreria = getLib(tokens.get(0).getString("id"));
+            Config config = new Config();
+            if (config.getDriver() == null) {
+                List<JSONObject> tokens = SmartCard.cards();
+                if (tokens.isEmpty() && libreria == null && config.getToken() == null && config.getHsmJWT() == null) {
+                    throw new RuntimeException("No se encontro ningun token conectado.");
+                }
+                if (tokens.size() > 1) {
+                    throw new RuntimeException("Tokens de diferentes marcas conectados.");
+                }
+                if (!tokens.isEmpty()) {
+                    libreria = getLib(tokens.get(0).getString("id"));
+                }
+            } else {
+                libreria = config.getDriver().getPath();
             }
             if (libreria != null) {
                 sunPKCS11 = sunPKCS11.configure(obtenerConfiguracion("token", null, null));
@@ -140,6 +149,12 @@ public class GestorSlot {
                 for (long id : lista) {
                     slots.put(id, new Slot(id, p11, obtenerConfiguracion("token", id, null)));
                 }
+            }
+            if (software && config.getToken() != null) {
+                slots.put(-1l, new Slot(config.getToken().getPath()));
+            }
+            if (config.getHsmJWT() != null) {
+                slots.put(-1001l, new Slot(-1001));
             }
         } catch (JSONException | IOException ex) {
             Logger.getLogger(GestorSlot.class.getName()).log(Level.SEVERE, null, ex);
@@ -165,9 +180,10 @@ public class GestorSlot {
      * @return Retorna un objeto Slot.
      */
     public synchronized Slot obtenerSlot(long slotID) {
-        if (!slots.containsKey(slotID)) {
+        /*if (!slots.containsKey(slotID)) {
             listarSlots();
-        }
+        }*/
+        listarSlots(); // MODIFICADO POR AQUISPE, para q siempre vaya a crear obtener slot en base a un usuario
         return slots.get(slotID);
     }
 
@@ -186,7 +202,7 @@ public class GestorSlot {
         }
         try {
             String configString = "name = " + nombre + slotID
-                + "\nlibrary = " + libreria;
+                    + "\nlibrary = " + libreria;
             if (slotID != null) {
                 configString += "\nslot = " + slotID;
                 if (label == null) {

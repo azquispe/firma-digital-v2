@@ -1,8 +1,7 @@
 package com.ganaseguro.firmador.services;
 
-import com.ganaseguro.firmador.dto.RequestFirmarLoteArchivosDto;
-import com.ganaseguro.firmador.dto.RequestFirmarLoteUsuarioDto;
-import com.ganaseguro.firmador.dto.ResponseDto;
+import com.ganaseguro.firmador.dto.*;
+import jacobitus.token.Token;
 
 public interface IFirmaService {
 
@@ -10,4 +9,8 @@ public interface IFirmaService {
     public ResponseDto firmarLoteUsuarios(RequestFirmarLoteUsuarioDto objLoteUsuarios);
     public ResponseDto firmarLoteArchivos(RequestFirmarLoteArchivosDto objLoteArchivo);
     public ResponseDto verificarFirmasPdf(String pdfBase64);
+
+    public ResponseDto obtieneInformacionCertificado(UsuariosFirmantesDto usuariosFirmantesDto);
+
+    public FechaInicioFinSoftTokenDto obtenerFechaValidezDeToken (Token token);
 }

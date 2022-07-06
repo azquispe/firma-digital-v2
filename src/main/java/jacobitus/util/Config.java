@@ -21,6 +21,8 @@ import java.util.Properties;
  *
  * @author ADSIB
  */
+
+
 public class Config {
     protected Properties options;
     protected File user;
@@ -33,7 +35,7 @@ public class Config {
 
 
             options = new Properties();
-            user = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "Jacobitus");
+            user = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "Jacobitus/AQUISPE");
             fileOptions = new File(user, "jacobitus.properties");
             if (user.exists()) {
                 if (fileOptions.exists()) {

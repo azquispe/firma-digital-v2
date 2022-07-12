@@ -1,6 +1,7 @@
 package com.ganaseguro.firmador.utils;
 
 import com.ganaseguro.firmador.dto.ResponseDto;
+import com.ganaseguro.firmador.utils.constantes.ConstDiccionarioMensajeFirma;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.StampingProperties;
@@ -47,16 +48,16 @@ public class FuncionesFirma {
             for (Map<String, Object> objMap:lstFirmas) {
                 Map<String, Object> certificado = (Map<String, Object>) objMap.get("certificado");
                 if(!(boolean)objMap.get("noModificado")){
-                    lstMensaje.add("DOCUMENTO MODIFICADO para el firmante: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
+                    lstMensaje.add(ConstDiccionarioMensajeFirma.COD2010+" - "+ConstDiccionarioMensajeFirma.COD2010_MENSAJE+", Usuario: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
                 }
-                if((boolean)objMap.get("cadenaConfianza")){
-                    lstMensaje.add("CADENA DE CONFIAZA  del certificado  no es válido para el  firmante: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
-                }
+                /*if(!(boolean)objMap.get("cadenaConfianza")){
+                    lstMensaje.add(ConstDiccionarioMensajeFirma.COD2011+" - "+ConstDiccionarioMensajeFirma.COD2011_MENSAJE+", Usuario: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
+                }*/
                 if(!(boolean)objMap.get("firmadoDuranteVigencia")){
-                    lstMensaje.add("PERIODO DE VIGENCIA  del certificado  no es válido para el  firmante: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
+                    lstMensaje.add(ConstDiccionarioMensajeFirma.COD2012+" - "+ConstDiccionarioMensajeFirma.COD2012_MENSAJE+", Usuario: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
                 }
                 if(!(boolean)objMap.get("firmadoAntesRevocacion")){
-                    lstMensaje.add("CERTIFICADO REVOCADO para el  firmante: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
+                    lstMensaje.add(ConstDiccionarioMensajeFirma.COD2013+" - "+ConstDiccionarioMensajeFirma.COD2013_MENSAJE+", Usuario: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
                 }
             }
             return lstMensaje;

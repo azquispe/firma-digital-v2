@@ -139,8 +139,8 @@ public class FirmaService implements IFirmaService {
             logObservaciones.add(ConstDiccionarioMensajeFirma.COD2000+" - "+ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
         }
         if(!logObservaciones.isEmpty()){
-            result.setMensaje(ConstDiccionarioMensajeFirma.COD2008);
-            result.setCodigo(ConstDiccionarioMensajeFirma.COD2008_MENSAJE);
+            result.setMensaje(ConstDiccionarioMensajeFirma.COD2008_MENSAJE);
+            result.setCodigo(ConstDiccionarioMensajeFirma.COD2008);
             result.setElementoGenerico(FuncionesGenericos.eliminarDuplicados(logObservaciones));
             return result;
         }else{

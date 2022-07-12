@@ -1,16 +1,12 @@
 package com.ganaseguro.firmador.services;
 
 import com.ganaseguro.firmador.dto.*;
-import com.ganaseguro.firmador.utils.FuncionesFechas;
 import com.ganaseguro.firmador.utils.FuncionesFirma;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import jacobitus.token.*;
 import com.ganaseguro.firmador.utils.FuncionesGenericos;
 import com.ganaseguro.firmador.utils.constantes.ConstDiccionarioMensajeFirma;
-import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.*;
 import com.itextpdf.signatures.*;
 import jacobitus.validar.CertDate;
@@ -19,7 +15,6 @@ import jacobitus.validar.DatosCertificado;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemReader;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,26 +22,15 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
 import java.security.Security;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 
 import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-
-import java.security.GeneralSecurityException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 
 
 import static jacobitus.validar.Validar.verificarOcsp;
@@ -66,186 +50,6 @@ public class FirmaService implements IFirmaService {
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-    @Override
-    public ResponseDto firmarLoteUsuarios(RequestFirmarLoteUsuarioDto objLoteUsuarios) {
-        ResponseDto response = new ResponseDto();
-        try {
-            // VALIDAMOS SI EL REQUEST TRAE NOMBRE DE USUARIO(S)
-            if (objLoteUsuarios.getLstUsuarioFirmantes().size() == 0) {
-                response.setMensaje(ConstDiccionarioMensajeFirma.COD2001_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2001);
-                return response;
-            }
-
-            // VALIDAMOS QUE TENGA BASE 64 (PDF A FIRMAR)
-            if (objLoteUsuarios.getPdfBase64() == null || objLoteUsuarios.getPdfBase64().trim() == "") {
-                response.setMensaje(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2002);
-                return response;
-            }
-
-            for (UsuariosFirmantesDto usuarioFirmante : objLoteUsuarios.getLstUsuarioFirmantes()) {
-                String pathSofToken = dirSoftoken + "/" + usuarioFirmante.getUserName() + "/softoken.p12";
-                File file = new File(pathSofToken);
-
-                // VALIDAMOS QUE EXISTA CARPETA DEL USUARIO
-                if (!file.exists()) {
-                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2003_MENSAJE);
-                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2003);
-                    return response;
-                }
-
-                Token token = new TokenPKCS12(new Slot(pathSofToken));
-
-                //VALIDAMOS QUE EL PIN SEA CORRECTO
-                try {
-                    String vPin = iEncryptDecryptService.decryptMessage(usuarioFirmante.getPin()).getElementoGenerico().toString(); // decifra pin
-                    token.iniciar(vPin);
-                } catch (Exception ex) {
-                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2004_MENSAJE);
-                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2004);
-                    return response;
-                }
-
-                // VERIFICAMOS QUE FECHA ESTE VIGENTE
-                FechaInicioFinSoftTokenDto objFechas =  this.obtenerFechaValidezDeToken(token);
-                if(objFechas==null || objFechas.getFechaFin()==null){
-                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2008_MENSAJE);
-                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2008);
-                    return response;
-                }
-                Date fechaActual = new Date(System.currentTimeMillis());
-                if(objFechas.getFechaFin().before(fechaActual)){
-                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2009_MENSAJE);
-                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2009);
-                    return response;
-                }
-
-
-                //VALIDAMOS QUE EL DOCUMENTO SE CONSTRUYA CORRECTAMENTE
-                try {
-                    FuncionesGenericos.saveBase64ToFile(objLoteUsuarios.getPdfBase64(), dirdocFirmado + "/documento.pdf");
-                } catch (Exception ex) {
-                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2005_MENSAJE);
-                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2005);
-                    return response;
-                }
-
-                List<String> labels = token.listarIdentificadorClaves();
-
-                Boolean firmado_Correcto = FuncionesFirma.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(labels.get(0)), token.getCertificateChain(labels.get(0)), token.getProviderName());
-                // VALIDAMOS QUE EXISTA CARPETA DEL USUARIO
-                if (!firmado_Correcto) {
-                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2007_MENSAJE);
-                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2007);
-                    return response;
-                }
-
-                objLoteUsuarios.setPdfBase64(FuncionesGenericos.pdfToBase64(dirdocFirmado + "/documento.firmado.pdf")); // recojemos el documento firmado y convertimos a Base 64
-                token.salir();
-            }
-            response.setMensaje(ConstDiccionarioMensajeFirma.COD1000_MENSAJE);
-            response.setCodigo(ConstDiccionarioMensajeFirma.COD1000);
-            response.setElementoGenerico(objLoteUsuarios.getPdfBase64());
-            return response;
-        } catch (Exception ex) {
-            // guardar mensaje en un log .....
-            response.setMensaje(ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
-            response.setCodigo(ConstDiccionarioMensajeFirma.COD2000);
-            return response;
-        }
-
-    }
-
-    @Override
-    public ResponseDto firmarLoteArchivos(RequestFirmarLoteArchivosDto objFirmaLoteArchivos) {
-
-        ResponseDto response = new ResponseDto();
-        try {
-
-            String pathSofToken = dirSoftoken + "/" + objFirmaLoteArchivos.getUserName() + "/softoken.p12";
-            File file = new File(pathSofToken);
-            // VALIDAMOS SI EXISTE CARPETA DEL USUARIO Y SU SOFTOKEN
-            if (!file.exists()) {
-                response.setMensaje(ConstDiccionarioMensajeFirma.COD2003_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2003);
-                return response;
-            }
-            //VALIDAMOS QUE EL PIN SEA CORRECTO
-            Token token = new TokenPKCS12(new Slot(pathSofToken));
-            try {
-                String vPin = iEncryptDecryptService.decryptMessage(objFirmaLoteArchivos.getPin()).getElementoGenerico().toString(); // decifra pin
-                token.iniciar(vPin);
-            } catch (Exception ex) {
-                response.setMensaje(ConstDiccionarioMensajeFirma.COD2004_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2004);
-                return response;
-            }
-            // VERIFICAMOS QUE FECHA ESTE VIGENTE
-            FechaInicioFinSoftTokenDto objFechas =  this.obtenerFechaValidezDeToken(token);
-            if(objFechas==null || objFechas.getFechaFin()==null){
-                response.setMensaje(ConstDiccionarioMensajeFirma.COD2008_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2008);
-                return response;
-            }
-            Date fechaActual = new Date(System.currentTimeMillis());
-            if(objFechas.getFechaFin().before(fechaActual)){
-                response.setMensaje(ConstDiccionarioMensajeFirma.COD2009_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2009);
-                return response;
-            }
-            // VALIDAMOS SI EL REQUEST TRAE NOMBRE DE USUARIO
-            if (objFirmaLoteArchivos.getUserName() == null || objFirmaLoteArchivos.getUserName().trim() == "") {
-                response.setMensaje(ConstDiccionarioMensajeFirma.COD2001_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2001);
-                return response;
-            }
-            //VALIDAMOS SI EL REQUEST TRAE BASE 64 (DOCUMENTOS)
-            if (objFirmaLoteArchivos.getPdfBase64().size() == 0) {
-                response.setMensaje(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
-                response.setCodigo(ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
-                return response;
-            }
-            List<String> lstArchivosFirmados = new ArrayList<>();
-
-            for (String archivo : objFirmaLoteArchivos.getPdfBase64()) {
-                //Guardamos el PDF Base 64 en una ubicacion fisica
-                try {
-                    FuncionesGenericos.saveBase64ToFile(archivo, dirdocFirmado + "/documento.pdf");
-                } catch (Exception ex) {
-                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2005_MENSAJE);
-                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2005);
-                    return response;
-                }
-
-                // firmamos
-                List<String> llaves = token.listarIdentificadorClaves();
-                Boolean firmado_Correcto = FuncionesFirma.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(llaves.get(0)), token.getCertificateChain(llaves.get(0)), token.getProviderName());
-                if (!firmado_Correcto) {
-                    response.setMensaje(ConstDiccionarioMensajeFirma.COD2007_MENSAJE);
-                    response.setCodigo(ConstDiccionarioMensajeFirma.COD2007);
-                    return response;
-                }
-
-                // recogemos el doc pdf firmado
-                lstArchivosFirmados.add(FuncionesGenericos.pdfToBase64(dirdocFirmado + "/documento.firmado.pdf"));
-            }
-            token.salir();
-
-
-            response.setMensaje(ConstDiccionarioMensajeFirma.COD1000_MENSAJE);
-            response.setCodigo(ConstDiccionarioMensajeFirma.COD1000);
-            response.setElementoGenerico(lstArchivosFirmados);
-            return response;
-
-        } catch (GeneralSecurityException ex) {
-            // RETORNA MESAJE DESCONOCIDO
-            response.setMensaje(ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
-            response.setCodigo(ConstDiccionarioMensajeFirma.COD2000);
-            return response;
-
-        }
-    }
 
     @Override
     public ResponseDto firmar(RequestFirmarDto requestFirmarDto) {
@@ -317,7 +121,7 @@ public class FirmaService implements IFirmaService {
 
                     ResponseDto resp =  this.verificarFirmasPdf(base64Firmado);
                     if(!resp.getCodigo().equals(ConstDiccionarioMensajeFirma.COD1000)){
-                        logObservaciones.add(ConstDiccionarioMensajeFirma.COD2011+" - "+ConstDiccionarioMensajeFirma.COD2011_MENSAJE);
+                        logObservaciones.add(ConstDiccionarioMensajeFirma.COD2009+" - "+ConstDiccionarioMensajeFirma.COD2009_MENSAJE);
                     }
 
                     //VERIFICAR SI HAY OBS EN LOS FIRMADOS
@@ -335,8 +139,8 @@ public class FirmaService implements IFirmaService {
             logObservaciones.add(ConstDiccionarioMensajeFirma.COD2000+" - "+ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
         }
         if(!logObservaciones.isEmpty()){
-            result.setMensaje(ConstDiccionarioMensajeFirma.COD2010);
-            result.setCodigo(ConstDiccionarioMensajeFirma.COD2010_MENSAJE);
+            result.setMensaje(ConstDiccionarioMensajeFirma.COD2008);
+            result.setCodigo(ConstDiccionarioMensajeFirma.COD2008_MENSAJE);
             result.setElementoGenerico(FuncionesGenericos.eliminarDuplicados(logObservaciones));
             return result;
         }else{
@@ -604,25 +408,6 @@ public class FirmaService implements IFirmaService {
         return false;
     }
 
-    @Override
-    public FechaInicioFinSoftTokenDto obtenerFechaValidezDeToken (Token token) {
 
-        try{
-            FechaInicioFinSoftTokenDto objResp = new FechaInicioFinSoftTokenDto();
-            List<String> llaves = token.listarIdentificadorClaves();
-            for (int i = 0; i < llaves.size(); i++) {
-                X509Certificate cert = token.obtenerCertificado(llaves.get(i));
-                DatosCertificado datos = new DatosCertificado(cert);
-                objResp.setFechaInicio(datos.getInicioValidez());
-                objResp.setFechaFin(datos.getFinValidez());
-                //objResp.setFechaFin(FuncionesFechas.ConvertirFormatoYYYYMMDD("2022-07-05 23:13"));
-
-            }
-            return objResp;
-        }catch (Exception ex){
-            return null;
-        }
-
-    }
 
 }

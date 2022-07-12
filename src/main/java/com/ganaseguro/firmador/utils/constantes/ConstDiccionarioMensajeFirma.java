@@ -4,9 +4,11 @@ public class ConstDiccionarioMensajeFirma {
     public static final String COD1000 = "COD1000"; // CUANDO TODO SEA CORRECTO
     public static final String COD1000_MENSAJE = "Proceso Completado";
     public static final String COD2000 = "COD2000";
-    public static final String COD2000_MENSAJE = "Error desconocido, Comuniquese con SISTEMAS";
+    public static final String COD2000_MENSAJE = "Error desconocido, Comuniquese con Administrador";
     public static final String COD2001 = "COD2001";
-    public static final String COD2001_MENSAJE = "No existe usuario(s) para el firmado de Documento(s)";
+
+    //MENSAJES PARA EL FIRMADO
+    public static final String COD2001_MENSAJE = "No existe usuario(s) para firmar";
     public static final String COD2002 = "COD2002";
     public static final String COD2002_MENSAJE = "No existe  Documento(s) para firmar";
     public static final String COD2003 = "COD2003";
@@ -15,15 +17,44 @@ public class ConstDiccionarioMensajeFirma {
     public static final String COD2004_MENSAJE = "PIN (es) Incorresto(s)";
     public static final String COD2005 = "COD2005";
     public static final String COD2005_MENSAJE = "No se pudo construir el documento .pdf (Base 64)";
-    public static final String COD2006 = "COD2006";
-    public static final String COD2006_MENSAJE = "No existe  Documento(s) para verificar";
     public static final String COD2007 = "COD2007";
     public static final String COD2007_MENSAJE = "No se pudo firmar el documento 'pdf'";
+    public static final String COD2010 = "COD2010";
+    public static final String COD2010_MENSAJE = "Se han encontrado errores";
+    public static final String COD2011 = "COD2011";
+    public static final String COD2011_MENSAJE = "No se pudo realizar la verificación de las firmas";
+
+
+
+    // MENSAJES PARA VERIFICAR FIRMAS
+    public static final String COD2006 = "COD2006";
+    public static final String COD2006_MENSAJE = "No existe  Documento(s) para verificar";
+
+
+
+
+
+
+
 
     public static final String COD2008 = "COD2008";
     public static final String COD2008_MENSAJE = "No se pudo obtener fecha Validez del Softoken";
     public static final String COD2009 = "COD2009";
     public static final String COD2009_MENSAJE = "Fecha del token se encuentra Vencido";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

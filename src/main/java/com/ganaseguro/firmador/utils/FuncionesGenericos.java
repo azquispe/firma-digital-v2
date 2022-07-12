@@ -17,7 +17,7 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
+import java.util.*;
 
 public class FuncionesGenericos {
     public static String pdfToBase64(String pPathFile) {
@@ -54,32 +54,32 @@ public class FuncionesGenericos {
 
     }
 
-    public static Boolean firmar(File file, PrivateKey pk, Certificate[] chain, String provider) {
-        try {
-            PdfReader reader = new PdfReader(file);
-            StampingProperties stamp = new StampingProperties();
-            stamp.useAppendMode();
-            PdfSigner signer = new PdfSigner(reader, new FileOutputStream(file.getPath().replace(".pdf", ".firmado.pdf")), stamp);
-            Rectangle rect = new Rectangle(0, 0, 0, 0);
-            PdfSignatureAppearance appearance = signer.getSignatureAppearance();
-            appearance.setPageRect(rect);
-            IExternalDigest digest = new BouncyCastleDigest();
-            IExternalSignature signature = new ExternalSignatureLocal(pk, provider);
-            signer.signDetached(digest, signature, chain, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
-            return true;
-        } catch (IOException ex) {
-            System.out.println("No se encontro el archivo " + file);
-            return false;
-        } catch (GeneralSecurityException ex) {
-            System.err.println("Error inesperado al firmar el documetno.");
-            return false;
-        }
-    }
+
     public static void saveBase64ToFile(String pBase64, String pPath) throws Exception {
         File file = new File(pPath);
         FileOutputStream fos = new FileOutputStream(file);
         byte[] decoder = Base64.getDecoder().decode(pBase64);
         fos.write(decoder);
     }
+    public static <T> List<T> eliminarDuplicados(List<T> list)
+    {
+
+        // Create a new LinkedHashSet
+        Set<T> set = new LinkedHashSet<>();
+
+        // Add the elements to set
+        set.addAll(list);
+
+        // Clear the list
+        list.clear();
+
+        // add the elements of set
+        // with no duplicates to the list
+        list.addAll(set);
+
+        // return the list
+        return list;
+    }
+
 
 }

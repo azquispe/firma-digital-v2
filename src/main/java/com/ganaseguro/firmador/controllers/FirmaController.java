@@ -20,7 +20,13 @@ public class FirmaController {
     @Autowired
     private IFirmaService iFirmaService;
 
-
+    @GetMapping("/v1/prueba")
+    public ResponseEntity<?> prueba(){
+        Map<String, Object> response = new HashMap<>();
+        response.put("codigoMensaje", "0");
+        response.put("mensaje", "Hola este es una prueba");
+        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+    }
     @PostMapping("/v1/firmar")
     public ResponseEntity<?> firmar(@RequestBody RequestFirmarDto requestFirmarDto) {
 

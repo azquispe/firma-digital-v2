@@ -34,7 +34,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
         http.authorizeRequests()
                 .antMatchers(HttpMethod.GET, "api/firma/v1/prueba").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/servicios-externos/v1/consultas-segip/auth").permitAll();
+                .antMatchers(HttpMethod.POST, "/api/servicios-externos/v1/consultas-segip").permitAll();
 
 
 

@@ -46,7 +46,7 @@ public class ServicioExternoController {
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("x-fapi-financial-id", "63");
-            headers.set("token", acces_token);
+            headers.set("Authorization", "Bearer "+acces_token);
 
             Map<String,Object> map_body = new HashMap<>();
             map_body.put("ci",requestConsultaSegipDto.getCi());
@@ -57,7 +57,7 @@ public class ServicioExternoController {
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(dataRequest, headers);
             RestTemplate restTemplate2 = new RestTemplate();
-        ResponseEntity<String> datospersona = restTemplate2.postForEntity(fooResourceUrl + "/accounts/validations/segip",entity, String.class);
+            ResponseEntity<String> datospersona = restTemplate2.postForEntity(fooResourceUrl + "/accounts/validations/segip",entity, String.class);
 
 
 

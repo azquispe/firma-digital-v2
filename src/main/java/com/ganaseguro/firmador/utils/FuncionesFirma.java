@@ -56,9 +56,9 @@ public class FuncionesFirma {
                 if(!(boolean)objMap.get("firmadoDuranteVigencia")){
                     lstMensaje.add(ConstDiccionarioMensajeFirma.COD2012+" - "+ConstDiccionarioMensajeFirma.COD2012_MENSAJE+", Usuario: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
                 }
-                if(!(boolean)objMap.get("firmadoAntesRevocacion")){
+                /*if(!(boolean)objMap.get("firmadoAntesRevocacion")){
                     lstMensaje.add(ConstDiccionarioMensajeFirma.COD2013+" - "+ConstDiccionarioMensajeFirma.COD2013_MENSAJE+", Usuario: "+certificado.get("nombreSignatario")+" al firmar el Documento Nro: "+nro_documento);
-                }
+                }*/
             }
             return lstMensaje;
         }catch (Exception ex){

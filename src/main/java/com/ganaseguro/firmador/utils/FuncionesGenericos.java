@@ -17,6 +17,8 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class FuncionesGenericos {
@@ -81,5 +83,16 @@ public class FuncionesGenericos {
         return list;
     }
 
+    public static String CovertirDateToString(Date pFecha) {
+        try {
+            Timestamp vFechaHora = new Timestamp(pFecha.getTime());
 
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+            return sdf.format(vFechaHora );
+
+        }
+        catch(Exception ex) {
+            return null;
+        }
+    }
 }

@@ -31,19 +31,28 @@ public class FirmaController {
     @GetMapping("/v1/prueba")
     public ResponseEntity<?> prueba(){
 
-        // Create a BlobServiceClient object which will be used to create a container client
-        BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(connectStr).buildClient();
+        try{
+            // Create a BlobServiceClient object which will be used to create a container client
+            BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(connectStr).buildClient();
 
-        //Create a unique name for the container
-        String containerName = "quickstartblobs" + java.util.UUID.randomUUID();
+            //Create a unique name for the container
+            String containerName = "quickstartblobs" + java.util.UUID.randomUUID();
 
-        // Create the container and return a container client object
-        BlobContainerClient containerClient = blobServiceClient.createBlobContainer(containerName);
+            // Create the container and return a container client object
+            BlobContainerClient containerClient = blobServiceClient.createBlobContainer(containerName);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("codigoMensaje", "0");
-        response.put("mensaje", "Hola este es una prueba contenedor");
-        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+            Map<String, Object> response = new HashMap<>();
+            response.put("codigoMensaje", "0");
+            response.put("mensaje", "Hola este es una prueba contenedor");
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+        }catch (Exception ex){
+            Map<String, Object> response = new HashMap<>();
+            response.put("codigoMensaje", "2000");
+            response.put("mensaje", ex.toString());
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+        }
+
+
     }
     @PostMapping("/v1/firmar")
     public ResponseEntity<?> firmar(@RequestBody RequestFirmarDto requestFirmarDto) {

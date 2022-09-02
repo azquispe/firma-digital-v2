@@ -3,6 +3,7 @@ package com.ganaseguro.firmador.controllers;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobItem;
 import com.ganaseguro.firmador.dto.*;
 import com.ganaseguro.firmador.services.IFirmaService;
 import com.ganaseguro.firmador.utils.constantes.ConstDiccionarioMensajeFirma;
@@ -30,20 +31,23 @@ public class FirmaController {
 
     @GetMapping("/v1/prueba")
     public ResponseEntity<?> prueba(){
-
+        // ref documentación
+        //https://docs.microsoft.com/es-es/azure/storage/blobs/storage-quickstart-blobs-java?tabs=powershell%2Cenvironment-variable-windows
         try{
             // Create a BlobServiceClient object which will be used to create a container client
             BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(connectStr).buildClient();
 
             //Create a unique name for the container
-            String containerName = "quickstartblobs" + java.util.UUID.randomUUID();
+            String nombre = "";
+            BlobContainerClient containerFirmaDigitalClient = blobServiceClient.getBlobContainerClient ("cont-firma-digital");
+            for (BlobItem blobItem : containerFirmaDigitalClient.listBlobs()) {
+                nombre = nombre+"-"+ blobItem.getName();
+            }
 
-            // Create the container and return a container client object
-            BlobContainerClient containerClient = blobServiceClient.createBlobContainer(containerName);
 
             Map<String, Object> response = new HashMap<>();
             response.put("codigoMensaje", "0");
-            response.put("mensaje", "Hola este es una prueba contenedor: "+blobClient.getBlobUrl());
+            response.put("mensaje", "Hola este es una prueba contenedor: "+nombre);
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
         }catch (Exception ex){
             Map<String, Object> response = new HashMap<>();

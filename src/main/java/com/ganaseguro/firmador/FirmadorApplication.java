@@ -4,7 +4,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-
+/**
+ * Azure blob storage v12 SDK quickstart
+ */
+import com.azure.storage.blob.*;
+import com.azure.storage.blob.models.*;
+import java.io.*;
 @SpringBootApplication
 public class FirmadorApplication  {
 

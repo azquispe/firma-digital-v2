@@ -1,9 +1,13 @@
 package com.ganaseguro.firmador.controllers;
 
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.ganaseguro.firmador.dto.*;
 import com.ganaseguro.firmador.services.IFirmaService;
 import com.ganaseguro.firmador.utils.constantes.ConstDiccionarioMensajeFirma;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +24,25 @@ public class FirmaController {
     @Autowired
     private IFirmaService iFirmaService;
 
+    @Value("${storage.conection}")
+    private String connectStr;
+
+
     @GetMapping("/v1/prueba")
     public ResponseEntity<?> prueba(){
+
+        // Create a BlobServiceClient object which will be used to create a container client
+        BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(connectStr).buildClient();
+
+        //Create a unique name for the container
+        String containerName = "quickstartblobs" + java.util.UUID.randomUUID();
+
+        // Create the container and return a container client object
+        BlobContainerClient containerClient = blobServiceClient.createBlobContainer(containerName);
+
         Map<String, Object> response = new HashMap<>();
         response.put("codigoMensaje", "0");
-        response.put("mensaje", "Hola este es una prueba");
+        response.put("mensaje", "Hola este es una prueba contenedor");
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
     @PostMapping("/v1/firmar")

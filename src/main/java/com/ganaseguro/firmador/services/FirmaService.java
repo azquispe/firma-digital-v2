@@ -79,6 +79,7 @@ public class FirmaService implements IFirmaService {
                 String pathSofToken = dirSoftoken + "/" + objUsuarios.getUserName() + "/softoken.p12";
                 File file = new File(pathSofToken);
                 if (!file.exists()) {
+
                     logObservaciones.add(ConstDiccionarioMensajeFirma.COD2003+" - "+ConstDiccionarioMensajeFirma.COD2003_MENSAJE+", Usuario: "+objUsuarios.getUserName() );
                     continue;
                 }

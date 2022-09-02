@@ -1,5 +1,6 @@
 package com.ganaseguro.firmador.controllers;
 
+import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,16 +41,32 @@ public class FirmaController {
             BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(connectStr).buildClient();
 
             //Create a unique name for the container
-            String nombre = "";
-            BlobContainerClient containerFirmaDigitalClient = blobServiceClient.getBlobContainerClient ("cont-firma-digital");
-            for (BlobItem blobItem : containerFirmaDigitalClient.listBlobs()) {
-                nombre = nombre+"-"+ blobItem.getName();
-            }
+            String containerName = "quickstartblobs" + java.util.UUID.randomUUID();
 
+            // Create the container and return a container client object
+            BlobContainerClient containerClient = blobServiceClient.createBlobContainer(containerName);
+
+            // Create a local file in the ./data/ directory for uploading and downloading
+            String localPath = "./data/";
+            String fileName = "quickstart" + java.util.UUID.randomUUID() + ".txt";
+            File localFile = new File(localPath + fileName);
+
+            // Write text to the file
+            FileWriter writer = new FileWriter(localPath + fileName, true);
+            writer.write("Hello, World!");
+            writer.close();
+
+            // Get a reference to a blob
+            BlobClient blobClient = containerClient.getBlobClient(fileName);
+
+            System.out.println("\nUploading to Blob storage as blob:\n\t" + blobClient.getBlobUrl());
+
+            // Upload the blob
+            blobClient.uploadFromFile(localPath + fileName);
 
             Map<String, Object> response = new HashMap<>();
             response.put("codigoMensaje", "0");
-            response.put("mensaje", "Hola este es una prueba contenedor: "+nombre);
+            response.put("mensaje", "Hola este es una prueba contenedor: "+blobClient.getBlobUrl());
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
         }catch (Exception ex){
             Map<String, Object> response = new HashMap<>();

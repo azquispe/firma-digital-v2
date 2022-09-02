@@ -43,7 +43,7 @@ public class FirmaController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("codigoMensaje", "0");
-            response.put("mensaje", "Hola este es una prueba contenedor");
+            response.put("mensaje", "Hola este es una prueba contenedor: "+blobClient.getBlobUrl());
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
         }catch (Exception ex){
             Map<String, Object> response = new HashMap<>();

@@ -56,7 +56,7 @@ public class FirmaController {
             ClassLoader classLoader = this.getClass().getClassLoader();
 
 
-            File p12 = new File("/home/site/wwwroot/softoken");
+            File p12 = new File("./home/site/wwwroot/softoken");
             new FileWriter(p12);
 
             Map<String, Object> response = new HashMap<>();

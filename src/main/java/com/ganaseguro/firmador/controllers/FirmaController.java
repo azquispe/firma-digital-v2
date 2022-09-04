@@ -1,17 +1,25 @@
 package com.ganaseguro.firmador.controllers;
 
 
+import com.azure.core.http.rest.PagedIterable;
 import com.ganaseguro.firmador.dto.*;
 import com.ganaseguro.firmador.services.IFirmaService;
 import com.ganaseguro.firmador.utils.constantes.ConstDiccionarioMensajeFirma;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,20 +40,40 @@ public class FirmaController {
     private String connectStr;
 
 
+
     @GetMapping("/v1/prueba")
     public ResponseEntity<?> prueba(){
         // ref documentación
         //https://docs.microsoft.com/es-es/azure/storage/blobs/storage-quickstart-blobs-java?tabs=powershell%2Cenvironment-variable-windows
         try{
+
             // Create a BlobServiceClient object which will be used to create a container client
             BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(connectStr).buildClient();
 
+            BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient("cont-firma-digital");
+            BlobClient blobCertificado = containerClient.getBlobClient("ABEL.p12");
+
+            ClassLoader classLoader = this.getClass().getClassLoader();
+
+
+            File p12 = new File("/home/site/wwwroot/softoken");
+            new FileWriter(p12);
 
             Map<String, Object> response = new HashMap<>();
+
+
+            /*if(!file.exists())
+            {
+                response.put("codigoMensaje", "0");
+                response.put("mensaje", "o se pudo crear directorio0 temporal ");
+                return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+            }
+            blobCertificado.downloadToFile(file.toString());*/
+
             response.put("codigoMensaje", "0");
-            response.put("mensaje", "Hola este es una prueba contenedor: ");
+            response.put("mensaje", "holaaaaa ");
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-        }catch (Exception ex){
+        }catch (Exception ex ){
             Map<String, Object> response = new HashMap<>();
             response.put("codigoMensaje", "2000");
             response.put("mensaje", ex.toString());

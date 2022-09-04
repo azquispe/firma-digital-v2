@@ -4,6 +4,7 @@ package com.ganaseguro.firmador.controllers;
 import com.azure.core.http.rest.PagedIterable;
 import com.ganaseguro.firmador.dto.*;
 import com.ganaseguro.firmador.services.IFirmaService;
+import com.ganaseguro.firmador.utils.FuncionesFirma;
 import com.ganaseguro.firmador.utils.constantes.ConstDiccionarioMensajeFirma;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,8 +37,10 @@ public class FirmaController {
     @Autowired
     private IFirmaService iFirmaService;
 
-    @Value("${storage.conection}")
+    @Value("${azure.storage.conection}")
     private String connectStr;
+    @Value("${dir.softoken}")
+    private String dirSoftoken;
 
 
 
@@ -47,29 +50,9 @@ public class FirmaController {
         //https://docs.microsoft.com/es-es/azure/storage/blobs/storage-quickstart-blobs-java?tabs=powershell%2Cenvironment-variable-windows
         try{
 
-            // Create a BlobServiceClient object which will be used to create a container client
-            BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(connectStr).buildClient();
-
-            BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient("cont-firma-digital");
-            BlobClient blobCertificado = containerClient.getBlobClient("ABEL.p12");
-
-            ClassLoader classLoader = this.getClass().getClassLoader();
-
-
-            File p12 = new File("/home/site/wwwroot/softoken/ABEL.p12");
-            new FileWriter(p12);
+            FuncionesFirma.downloadSoftoken(connectStr,"cont-firma-digital",dirSoftoken,"ABEL.p12");
 
             Map<String, Object> response = new HashMap<>();
-
-
-            /*if(!file.exists())
-            {
-                response.put("codigoMensaje", "0");
-                response.put("mensaje", "o se pudo crear directorio0 temporal ");
-                return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-            }
-            blobCertificado.downloadToFile(file.toString());*/
-
             response.put("codigoMensaje", "0");
             response.put("mensaje", "holaaaaa ");
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);

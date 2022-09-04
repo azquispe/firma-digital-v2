@@ -45,6 +45,13 @@ public class FirmaService implements IFirmaService {
     @Value("${dir.docFirmado}")
     private String dirdocFirmado;
 
+    @Value("${azure.storage.conection}")
+    private String connectStr;
+
+    @Value("${azure.storage.namecontent}")
+    private String nameContent;
+
+
     @Autowired
     IEncryptDecryptService iEncryptDecryptService;
 
@@ -56,43 +63,46 @@ public class FirmaService implements IFirmaService {
         ResponseDto result = new ResponseDto();
         List<String> logObservaciones = new ArrayList<>();
         try {
-
             // VALIDAMOS QUE EXISTA DOCUMENTOS PDF
             if (requestFirmarDto.getListaPdf().isEmpty()) {
-                logObservaciones.add(ConstDiccionarioMensajeFirma.COD2002_MENSAJE+" - "+ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
+                logObservaciones.add(ConstDiccionarioMensajeFirma.COD2002 + " - " + ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
             }
             // VALIDAMOS QUE EXISTA USUARIOS FIRMANTES
             if (requestFirmarDto.getListaUsuario().isEmpty()) {
-                logObservaciones.add(ConstDiccionarioMensajeFirma.COD2001+" - "+ConstDiccionarioMensajeFirma.COD2001_MENSAJE);
-
+                logObservaciones.add(ConstDiccionarioMensajeFirma.COD2001 + " - " + ConstDiccionarioMensajeFirma.COD2001_MENSAJE);
             }
-            for (UsuariosFirmantesDto objUsuarios:requestFirmarDto.getListaUsuario()) {
+            for (UsuariosFirmantesDto objUsuarios : requestFirmarDto.getListaUsuario()) {
 
                 // VALIDAMOS SI EL REQUEST TRAE NOMBRE DE USUARIO
                 if (objUsuarios.getUserName() == null || objUsuarios.getUserName().trim() == "") {
-                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2001+" - "+ConstDiccionarioMensajeFirma.COD2001_MENSAJE);
+                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2001 + " - " + ConstDiccionarioMensajeFirma.COD2001_MENSAJE);
+                    continue;
+                }
+
+                // DESCARGAMOS SOFTOKEN AL SITIO
+                //https://docs.microsoft.com/es-es/azure/storage/blobs/storage-quickstart-blobs-java?tabs=powershell%2Cenvironment-variable-windows
+                boolean descargaCorrecta = FuncionesFirma.downloadSoftoken(connectStr, nameContent, dirSoftoken, objUsuarios.getUserName() + ".p12");
+                if (!descargaCorrecta) {
+                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2003 + " - " + ConstDiccionarioMensajeFirma.COD2003_MENSAJE );
                     continue;
                 }
 
                 // VALIDAMOS QUE EXISTA CERTIFICADOS
-
-                String pathSofToken = dirSoftoken + "/" + objUsuarios.getUserName() + "/softoken.p12";
+                String pathSofToken = dirSoftoken + "/" + objUsuarios.getUserName() + ".p12";
                 File file = new File(pathSofToken);
                 if (!file.exists()) {
-
-                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2003+" - "+ConstDiccionarioMensajeFirma.COD2003_MENSAJE+", Usuario: "+objUsuarios.getUserName() );
+                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2003 + " - " + ConstDiccionarioMensajeFirma.COD2003_MENSAJE + ", Usuario: " + objUsuarios.getUserName());
                     continue;
                 }
 
                 Token token = new TokenPKCS12(new Slot(pathSofToken));
 
                 //VALIDAMOS QUE EL PIN SEA CORRECTO
-
                 try {
                     String vPin = iEncryptDecryptService.decryptMessage(objUsuarios.getPin()).getElementoGenerico().toString();
                     token.iniciar(vPin);
                 } catch (Exception ex) {
-                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2004+" - "+ConstDiccionarioMensajeFirma.COD2004_MENSAJE+", Usuario: "+objUsuarios.getUserName() );
+                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2004 + " - " + ConstDiccionarioMensajeFirma.COD2004_MENSAJE + ", Usuario: " + objUsuarios.getUserName());
                     continue;
                 }
 
@@ -100,30 +110,28 @@ public class FirmaService implements IFirmaService {
                 List<String> lstArchivosFirmados = new ArrayList<>();
 
 
-                for(String  pdf: requestFirmarDto.getListaPdf()){
+                for (String pdf : requestFirmarDto.getListaPdf()) {
 
                     //VALIDAMOS SI EL REQUEST TRAE BASE 64 (DOCUMENTOS)
-                    if (pdf==null || pdf.trim()=="") {
-                        logObservaciones.add(ConstDiccionarioMensajeFirma.COD2002+" - "+ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
+                    if (pdf == null || pdf.trim() == "") {
+                        logObservaciones.add(ConstDiccionarioMensajeFirma.COD2002 + " - " + ConstDiccionarioMensajeFirma.COD2002_MENSAJE);
                         continue;
                     }
 
-                    //GUARDAMOS PDF 64 EN UNA UBICACION FISICA
-
-                    try {
-                        FuncionesGenericos.saveBase64ToFile(pdf, dirdocFirmado + "/documento.pdf");
-                    } catch (Exception ex) {
-                        logObservaciones.add(ConstDiccionarioMensajeFirma.COD2005+" - "+ConstDiccionarioMensajeFirma.COD2005_MENSAJE);
+                    //GUARDAMOS PDF 64 (AUN SIN FIRMAR) EN UNA UBICACION FISICA
+                    Boolean guardadoCorrecto = FuncionesGenericos.saveBase64ToFile(pdf, dirdocFirmado + "/documento.pdf");
+                    if (!guardadoCorrecto ) {
+                        logObservaciones.add(ConstDiccionarioMensajeFirma.COD2005 + " - " + ConstDiccionarioMensajeFirma.COD2005_MENSAJE);
                     }
 
 
                     //SE FIRMA LOS PDFS
-                    System.out.println("FIRMAMOS INICIO => "+FuncionesGenericos.CovertirDateToString(new Date()));
                     List<String> llaves = token.listarIdentificadorClaves();
-                    Boolean firmado_Correcto = FuncionesFirma.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(llaves.get(0)), token.getCertificateChain(llaves.get(0)), token.getProviderName());
-                    if (!firmado_Correcto) {
-                        logObservaciones.add(ConstDiccionarioMensajeFirma.COD2007+" - "+ConstDiccionarioMensajeFirma.COD2007_MENSAJE);
+                    Boolean firmadoCorrecto = FuncionesFirma.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(llaves.get(0)), token.getCertificateChain(llaves.get(0)), token.getProviderName());
+                    if (!firmadoCorrecto) {
+                        logObservaciones.add(ConstDiccionarioMensajeFirma.COD2007 + " - " + ConstDiccionarioMensajeFirma.COD2007_MENSAJE);
                     }
+
                     String base64Firmado = FuncionesGenericos.pdfToBase64(dirdocFirmado + "/documento.firmado.pdf");
                     lstArchivosFirmados.add(base64Firmado);
 
@@ -133,28 +141,27 @@ public class FirmaService implements IFirmaService {
                 token.salir();
 
             }
-            int numero_documento=1;
-            for (String  base64Firmado :requestFirmarDto.getListaPdf()) {
-                ResponseDto resp =  this.verificarFirmasPdf(base64Firmado);
-                if(!resp.getCodigo().equals(ConstDiccionarioMensajeFirma.COD1000)){
-                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2009+" - "+ConstDiccionarioMensajeFirma.COD2009_MENSAJE);
+            int numero_documento = 1;
+            for (String base64Firmado : requestFirmarDto.getListaPdf()) {
+                ResponseDto resp = this.verificarFirmasPdf(base64Firmado);
+                if (!resp.getCodigo().equals(ConstDiccionarioMensajeFirma.COD1000)) {
+                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2009 + " - " + ConstDiccionarioMensajeFirma.COD2009_MENSAJE);
                 }
                 List<Map<String, Object>> lstFirmas = (List<Map<String, Object>>) resp.getElementoGenerico();
-                logObservaciones.addAll(FuncionesFirma.verificarObservacionEnFirmas(lstFirmas,numero_documento));
+                logObservaciones.addAll(FuncionesFirma.verificarObservacionEnFirmas(lstFirmas, numero_documento));
                 numero_documento++;
             }
 
 
-
-        }catch (Exception ex){
-            logObservaciones.add(ConstDiccionarioMensajeFirma.COD2000+" - "+ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
+        } catch (Exception ex) {
+            logObservaciones.add(ConstDiccionarioMensajeFirma.COD2000 + " - " + ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
         }
-        if(!logObservaciones.isEmpty()){
+        if (!logObservaciones.isEmpty()) {
             result.setMensaje(ConstDiccionarioMensajeFirma.COD2008_MENSAJE);
             result.setCodigo(ConstDiccionarioMensajeFirma.COD2008);
             result.setElementoGenerico(FuncionesGenericos.eliminarDuplicados(logObservaciones));
             return result;
-        }else{
+        } else {
             result.setMensaje(ConstDiccionarioMensajeFirma.COD1000_MENSAJE);
             result.setCodigo(ConstDiccionarioMensajeFirma.COD1000);
             result.setElementoGenerico(requestFirmarDto.getListaPdf());
@@ -243,6 +250,7 @@ public class FirmaService implements IFirmaService {
                 response.setCodigo(ConstDiccionarioMensajeFirma.COD2003);
                 return response;
             }
+
 
             // VALIDADMOS PIN CORRECTO
             Token token = new TokenPKCS12(new Slot(pathSofToken));
@@ -418,7 +426,6 @@ public class FirmaService implements IFirmaService {
         }
         return false;
     }
-
 
 
 }

@@ -1,6 +1,8 @@
 package com.ganaseguro.firmador.utils;
 
+import com.ganaseguro.firmador.dto.ResponseDto;
 import com.ganaseguro.firmador.security.RSA_for_PIN;
+import com.ganaseguro.firmador.utils.constantes.ConstDiccionarioMensajeFirma;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.StampingProperties;
@@ -9,6 +11,7 @@ import jacobitus.token.ExternalSignatureLocal;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
@@ -57,12 +60,41 @@ public class FuncionesGenericos {
     }
 
 
-    public static void saveBase64ToFile(String pBase64, String pPath) throws Exception {
+    public static ResponseDto saveBase64ToFile_Old(String pBase64, String pPath)  {
+        ResponseDto res = new ResponseDto();
         File file = new File(pPath);
-        FileOutputStream fos = new FileOutputStream(file);
-        byte[] decoder = Base64.getDecoder().decode(pBase64);
-        fos.write(decoder);
+        FileOutputStream fos = null;
+        try{
+            fos = new FileOutputStream(file);
+            byte[] decoder = Base64.getDecoder().decode(pBase64);
+            fos.write(decoder);
+            fos.close();
+            res.setCodigo(ConstDiccionarioMensajeFirma.COD1000);
+            res.setMensaje(ConstDiccionarioMensajeFirma.COD1000_MENSAJE);
+            return res;
+        }catch (IOException ex){
+            res.setCodigo(ConstDiccionarioMensajeFirma.COD1000);
+            res.setMensaje(ConstDiccionarioMensajeFirma.COD1000_MENSAJE);
+            return res;
+        }
     }
+
+    public static boolean   saveBase64ToFile(String pBase64,
+                                               String pPath) {
+
+        try{
+            byte[] decoder = Base64.getDecoder().decode(pBase64);
+            Files.write(Paths.get(pPath), decoder);
+
+            return true;
+        }catch (IOException  ex){
+            return false;
+        }
+
+    }
+
+
+
     public static <T> List<T> eliminarDuplicados(List<T> list)
     {
 

@@ -21,8 +21,10 @@ public class ConstDiccionarioMensajeFirma {
     public static final String COD2007_MENSAJE = "No se pudo firmar el documento 'pdf'";
     public static final String COD2008 = "COD2008";
     public static final String COD2008_MENSAJE = "Se han encontrado errores";
-    public static final String COD2009 = "COD2009";
-    public static final String COD2009_MENSAJE = "No se pudo realizar la verificación de las firmas";
+
+    //ya no se usa
+    /*public static final String COD2009 = "COD2009";
+    public static final String COD2009_MENSAJE = "No se pudo realizar la verificación de las firmas";*/
 
     public static final String COD2010 = "COD2010";
     public static final String COD2010_MENSAJE = "Documento ha sido modificado";

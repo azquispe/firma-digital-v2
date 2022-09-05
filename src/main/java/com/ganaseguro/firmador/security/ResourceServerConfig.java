@@ -29,13 +29,24 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/api/**").authenticated();
+        http.authorizeRequests().antMatchers("/api/**"). authenticated();
 
+        /*http
+                .requestMatchers()
+                .antMatchers("/**")
+                .and()
+                .authorizeRequests()
+                .antMatchers("/api/**").access("#oauth2.hasScope('FIRMADOR')");*/
 
-        /*http.authorizeRequests()
-                .antMatchers(HttpMethod.GET, "api/firma/v1/pruebavvv").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/servicios-externos/v1/consultas-segip").permitAll();*/
-
+        /*http
+                .authorizeRequests()
+                .antMatchers("/api/**").permitAll()
+                .and()
+                .authorizeRequests()
+                .antMatchers("/api/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+                .and()
+                .httpBasic();*/
 
 
 

@@ -11,6 +11,7 @@ import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.StampingProperties;
 import com.itextpdf.signatures.*;
 import jacobitus.token.ExternalSignatureLocal;
+import jacobitus.token.Token;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -32,26 +33,36 @@ import java.util.Map;
 public class FuncionesFirma {
 
 
-    public static boolean firmar(File file, PrivateKey pk, Certificate[] chain, String provider) {
-
+    public static Boolean firmar(File file, Token token) {
         try {
+
+            List<String> llaves =  token.listarIdentificadorClaves();
+
+            PrivateKey pk = token.obtenerClavePrivada(llaves.get(0));
+            //Certificate[] chain = null; // para simular error  2007
+            Certificate[] chain =  token.getCertificateChain(llaves.get(0));
+
+            String provider = token.getProviderName();
+
             PdfReader reader = new PdfReader(file);
             StampingProperties stamp = new StampingProperties();
             stamp.useAppendMode();
-            PdfSigner signer = new PdfSigner(reader, new FileOutputStream(file.getPath().replace(".pdf", ".firmado.pdf")), stamp);
+            PdfSigner signer = new PdfSigner(reader, new FileOutputStream(file.getPath().replace(".pdf", "_firmado.pdf")), stamp);
             Rectangle rect = new Rectangle(0, 0, 0, 0);
             PdfSignatureAppearance appearance = signer.getSignatureAppearance();
             appearance.setPageRect(rect);
             IExternalDigest digest = new BouncyCastleDigest();
             IExternalSignature signature = new ExternalSignatureLocal(pk, provider);
             signer.signDetached(digest, signature, chain, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
-
             return true;
         } catch (IOException ex) {
-
+            System.out.println("No se encontro el archivo " + file);
             return false;
         } catch (GeneralSecurityException ex) {
-
+            System.err.println("Error inesperado al firmar el documetno.");
+            return false;
+        }
+        catch (Exception ex){
             return false;
         }
     }
@@ -83,10 +94,14 @@ public class FuncionesFirma {
 
     public static Boolean downloadSoftoken(String connectStr, String contenedor, String pathDownload, String nameFile) {
         try {
+
             //https://docs.microsoft.com/es-es/azure/storage/blobs/storage-quickstart-blobs-java?tabs=powershell%2Cenvironment-variable-windows
             BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(connectStr).buildClient();
             BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(contenedor);
             BlobClient blobCertificado = containerClient.getBlobClient(nameFile);
+            if(!blobCertificado.exists()){
+                return false;
+            }
             File p12 = new File(pathDownload + "/" + nameFile);
             blobCertificado.downloadToFile(p12.toString(),true);
 

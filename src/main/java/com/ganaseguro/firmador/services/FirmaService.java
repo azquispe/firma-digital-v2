@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.Security;
 import java.security.cert.Certificate;
@@ -89,11 +91,11 @@ public class FirmaService implements IFirmaService {
 
                 // VALIDAMOS QUE EXISTA CERTIFICADOS
                 String pathSofToken = dirSoftoken + "/" + objUsuarios.getUserName() + ".p12";
-                File file = new File(pathSofToken);
+                /*File file = new File(pathSofToken);
                 if (!file.exists()) {
                     logObservaciones.add(ConstDiccionarioMensajeFirma.COD2003 + " - " + ConstDiccionarioMensajeFirma.COD2003_MENSAJE + ", Usuario: " + objUsuarios.getUserName());
                     continue;
-                }
+                }*/
 
                 Token token = new TokenPKCS12(new Slot(pathSofToken));
 
@@ -108,8 +110,6 @@ public class FirmaService implements IFirmaService {
 
 
                 List<String> lstArchivosFirmados = new ArrayList<>();
-
-
                 for (String pdf : requestFirmarDto.getListaPdf()) {
 
                     //VALIDAMOS SI EL REQUEST TRAE BASE 64 (DOCUMENTOS)
@@ -126,8 +126,7 @@ public class FirmaService implements IFirmaService {
 
 
                     //SE FIRMA LOS PDFS
-                    List<String> llaves = token.listarIdentificadorClaves();
-                    Boolean firmadoCorrecto = FuncionesFirma.firmar(new File(dirdocFirmado + "/documento.pdf"), token.obtenerClavePrivada(llaves.get(0)), token.getCertificateChain(llaves.get(0)), token.getProviderName());
+                    Boolean firmadoCorrecto = FuncionesFirma.firmar(new File( dirdocFirmado + "/documento.pdf"), token);
                     if (!firmadoCorrecto) {
                         logObservaciones.add(ConstDiccionarioMensajeFirma.COD2007 + " - " + ConstDiccionarioMensajeFirma.COD2007_MENSAJE);
                     }
@@ -140,12 +139,14 @@ public class FirmaService implements IFirmaService {
                 requestFirmarDto.setListaPdf(lstArchivosFirmados);
                 token.salir();
 
+                //Files.delete(Paths.get(pathSofToken));
+
             }
             int numero_documento = 1;
             for (String base64Firmado : requestFirmarDto.getListaPdf()) {
                 ResponseDto resp = this.verificarFirmasPdf(base64Firmado);
                 if (!resp.getCodigo().equals(ConstDiccionarioMensajeFirma.COD1000)) {
-                    logObservaciones.add(ConstDiccionarioMensajeFirma.COD2009 + " - " + ConstDiccionarioMensajeFirma.COD2009_MENSAJE);
+                    logObservaciones.add(resp.getCodigo() + " - " + resp.getMensaje());
                 }
                 List<Map<String, Object>> lstFirmas = (List<Map<String, Object>>) resp.getElementoGenerico();
                 logObservaciones.addAll(FuncionesFirma.verificarObservacionEnFirmas(lstFirmas, numero_documento));
@@ -155,6 +156,7 @@ public class FirmaService implements IFirmaService {
 
         } catch (Exception ex) {
             logObservaciones.add(ConstDiccionarioMensajeFirma.COD2000 + " - " + ConstDiccionarioMensajeFirma.COD2000_MENSAJE);
+
         }
         if (!logObservaciones.isEmpty()) {
             result.setMensaje(ConstDiccionarioMensajeFirma.COD2008_MENSAJE);
